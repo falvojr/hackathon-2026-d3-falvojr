@@ -1,0 +1,109 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+  <meta charset="utf-8">
+  <title>Assistente de Horas · Opções</title>
+  <style>
+    body { font: 14px/1.5 -apple-system, "Segoe UI", Roboto, Arial, sans-serif; color: #1d2733; background: #f5f7fa; margin: 0; }
+    main { max-width: 640px; margin: 32px auto; background: #fff; border: 1px solid #dde6ef; border-radius: 8px; padding: 24px 28px; }
+    h1 { font-size: 20px; margin: 0 0 4px; }
+    p.sub { color: #5b6b7c; margin: 0 0 20px; }
+    fieldset { border: 0; border-top: 1px solid #eef2f6; padding: 14px 0 4px; margin: 0; }
+    legend { font-weight: 600; padding-right: 8px; }
+    label { display: block; margin: 10px 0 4px; font-weight: 600; }
+    small { display: block; color: #6b7785; font-weight: 400; }
+    input[type=text], input[type=password], input[type=number], input[type=time], textarea, select { width: 100%; box-sizing: border-box; padding: 6px 8px; border: 1px solid #c9d6e3; border-radius: 4px; font: inherit; }
+    .linha { display: flex; gap: 12px; }
+    .linha > div { flex: 1; }
+    .check { display: flex; gap: 8px; align-items: center; font-weight: 400; }
+    button { background: #1f6fd1; color: #fff; border: 0; border-radius: 4px; padding: 8px 16px; font: inherit; cursor: pointer; }
+    button.sec { background: #fff; color: #1f6fd1; border: 1px solid #1f6fd1; }
+    .acoes { display: flex; gap: 10px; align-items: center; margin-top: 20px; }
+    #status { font-weight: 600; }
+    #status.ok { color: #1a7f37; }
+    #status.erro { color: #b42318; }
+    code { background: #eef2f6; padding: 1px 4px; border-radius: 3px; }
+    pre { background: #eef2f6; padding: 8px 10px; border-radius: 4px; overflow-x: auto; }
+    pre code { padding: 0; }
+  </style>
+</head>
+<body>
+<main>
+  <h1>Assistente de Horas</h1>
+  <p class="sub">Lembra, sugere e preenche o apontamento do PSOffice a partir da sua atividade no GitHub. Usa a sua sessão do PSOffice: nenhuma senha fica guardada.</p>
+
+  <fieldset>
+    <legend>GitHub (ponte local)</legend>
+    <p class="sub">A extensão não guarda token. Ela pergunta ao <code>gh</code> já logado no seu computador, por uma ponte que só faz leituras. Para instalar, rode uma vez na pasta do projeto:</p>
+    <pre><code>node extensao/ponte/instalar.js --usuario &lt;sua-conta-do-gh&gt;</code></pre>
+    <div class="acoes"><button type="button" class="sec" id="testar">Verificar ponte</button><span id="statusGithub"></span></div>
+  </fieldset>
+
+  <fieldset>
+    <legend>Sugestões</legend>
+    <div class="linha">
+      <div>
+        <label for="jornadaHoras">Jornada diária (h)</label>
+        <input id="jornadaHoras" type="number" step="0.25" min="1" max="24">
+      </div>
+      <div>
+        <label for="atividadePadrao">Atividade padrão (atribId)
+          <small>Vazio = a que tem mais horas na semana</small>
+        </label>
+        <input id="atividadePadrao" type="text" placeholder="ex.: 382">
+      </div>
+    </div>
+    <div class="linha">
+      <div>
+        <label for="inicioExpediente">Início do expediente</label>
+        <input id="inicioExpediente" type="time">
+      </div>
+      <div>
+        <label for="fimExpediente">Fim do expediente
+          <small>Atividade fora deste horário vira aviso de possível hora extra</small>
+        </label>
+        <input id="fimExpediente" type="time">
+      </div>
+    </div>
+    <label for="jiraBase">Link do Jira
+      <small>Vazio = aprende sozinho a partir de uma justificativa sua já salva</small>
+    </label>
+    <input id="jiraBase" type="text" placeholder="https://empresa.atlassian.net/browse/">
+    <label for="prefixosJira">Projetos do Jira considerados
+      <small>Separados por vírgula. Vazio = qualquer chave no formato ABC-123</small>
+    </label>
+    <input id="prefixosJira" type="text" placeholder="ABC, XYZ">
+    <label class="check"><input id="justificativaComTitulos" type="checkbox"> Sem chave do Jira no dia, usar títulos de PR/commit como justificativa (leva textos do repositório do cliente para o PSOffice)</label>
+  </fieldset>
+
+  <fieldset>
+    <legend>Lembretes e automações</legend>
+    <div class="linha">
+      <div>
+        <label for="horaLembrete">Lembrete diário</label>
+        <input id="horaLembrete" type="time">
+      </div>
+      <div>
+        <label for="horaEnvio">Lembrete de envio (sexta)</label>
+        <input id="horaEnvio" type="time">
+      </div>
+    </div>
+    <label class="check"><input id="selecionarAtividadesAuto" type="checkbox"> Selecionar automaticamente as atividades da semana anterior quando a semana começar vazia</label>
+    <label for="feriadosExtras">Feriados extras
+      <small>Os nacionais vêm da BrasilAPI. Adicione os municipais/estaduais em AAAA-MM-DD, um por linha</small>
+    </label>
+    <textarea id="feriadosExtras" rows="3" placeholder="2026-08-22"></textarea>
+    <label for="psofficeBase">Endereço do PSOffice</label>
+    <input id="psofficeBase" type="text">
+  </fieldset>
+
+  <div class="acoes">
+    <button type="button" id="salvar">Salvar</button>
+    <button type="button" class="sec" id="verificar">Salvar e verificar agora</button>
+    <span id="status"></span>
+  </div>
+</main>
+<script src="lib/config.js"></script>
+<script src="options.js"></script>
+</body>
+</html>

@@ -1,0 +1,15 @@
+ok - dias úteis ignoram fim de semana e feriado
+ok - semana começa no domingo
+ok - data local usa o fuso de São Paulo
+ok - chaves do Jira sem falsos positivos
+ok - comentário só com links do Jira; títulos do GitHub apenas se a opção estiver ligada
+ok - dia lançado sem justificativa e sem chave do Jira não vira sugestão vazia
+ok - ponte só aceita os GETs da lista
+ok - análise da semana: horas, ausência, justificativa, futuro e hora extra
+ok - dia útil passado sem horas e sem GitHub sugere ausência
+ok - formulário serializado como o navegador (checkbox, select, textarea, botão clicado)
+ok - HTML malformado do PSOffice: aspas sobrando e ">" dentro de atributo
+ok - codificação windows-1252 igual à do navegador
+ok - atributos com JSON entre aspas simples
+
+13 testes passaram.

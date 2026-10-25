@@ -1,0 +1,11 @@
+# Material interno do kit (slides) e cópia em planilha dos CSVs de dados/
+*.pptx
+*.xlsx
+
+# Configuração local da ponte (gerada pelo instalador fora do repositório; nunca versionar)
+extensao/ponte/config.json
+
+# Sistema
+Thumbs.db
+desktop.ini
+.DS_Store

@@ -1,0 +1,49 @@
+{
+  "manifest_version": 3,
+  "name": "Assistente de Horas PSOffice",
+  "version": "1.1.0",
+  "description": "Lembra, sugere e preenche o apontamento de horas do PSOffice a partir da sua atividade no GitHub.",
+  "key": "MIIBIjANBgkqhkiG9w0BAQEFAAOCAQ8AMIIBCgKCAQEAlNx4ECFSS0OtK83h+aISy+tkoFMi1CNK6EKqRTxCnnyk7h6txKraYYx1cjQ8RQ18Pd+MyjmKKLOiNkm8ehdRqAfoQSq4mTos3W6kX+o4WcTsjJmj4tvxsXubwf3zEeXqzqoZynEsfJSzyNZTEBFhHSY5gjPy+cXPiZUBPUtvLTVxb/bjtnvxTG2qh0AEcySOdK2zFfJEnOAUc2rZ1IIwYsUSD+P8CabzxaMXcrSC+mMCxYlHJtVcFmEdjNfMHzOOuWOs30JNV3qZg83JsN8QT4e0nXiI2PYkc6xryNdEFwk+IpAN4uhg9tT3ezb9X2vAP4IsCv3nLr01x7qc3nvNOQIDAQAB",
+  "icons": {
+    "48": "icone48.png",
+    "128": "icone128.png"
+  },
+  "action": {
+    "default_title": "Abrir minhas horas no PSOffice",
+    "default_icon": {
+      "48": "icone48.png"
+    }
+  },
+  "permissions": [
+    "alarms",
+    "notifications",
+    "storage",
+    "nativeMessaging"
+  ],
+  "host_permissions": [
+    "https://psofficeapp.com.br/*",
+    "https://brasilapi.com.br/*"
+  ],
+  "background": {
+    "service_worker": "background.js"
+  },
+  "options_page": "options.html",
+  "content_scripts": [
+    {
+      "matches": [
+        "https://psofficeapp.com.br/*/psoffice/horas/horasnew.do*"
+      ],
+      "js": [
+        "lib/regras.js",
+        "lib/psoffice.js",
+        "lib/config.js",
+        "lib/assistente.js",
+        "content.js"
+      ],
+      "css": [
+        "content.css"
+      ],
+      "run_at": "document_idle"
+    }
+  ]
+}
