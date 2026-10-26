@@ -6,10 +6,12 @@ ok - comentário só com links do Jira; títulos do GitHub apenas se a opção e
 ok - dia lançado sem justificativa e sem chave do Jira não vira sugestão vazia
 ok - ponte só aceita os GETs da lista
 ok - análise da semana: horas, ausência, justificativa, futuro e hora extra
+ok - hoje sem atividade ainda não vira sugestão de ausência
+ok - dia lançado e não enviado pode ser ajustado; enviado não
 ok - dia útil passado sem horas e sem GitHub sugere ausência
 ok - formulário serializado como o navegador (checkbox, select, textarea, botão clicado)
 ok - HTML malformado do PSOffice: aspas sobrando e ">" dentro de atributo
 ok - codificação windows-1252 igual à do navegador
 ok - atributos com JSON entre aspas simples
 
-13 testes passaram.
+15 testes passaram.

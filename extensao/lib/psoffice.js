@@ -211,6 +211,8 @@
         celulas,
         urlAtividades: sel ? decodificar(sel[1]) : null,
         podeEnviar: /name="button_SubmeteSemanal"/.test(html),
+        // A tela só oferece "Cancelar Envio" enquanto há apontamento enviado e ainda não aprovado.
+        podeCancelar: /name="button_CancelaSubmissaoSemanal"/.test(html) && celulas.some((c) => c.status === '1'),
       };
     }
 
@@ -289,6 +291,15 @@
       return depois;
     }
 
+    // Cancela o envio (mesmo botão "Cancelar Envio para Aprovação"), para permitir ajustes antes da aprovação.
+    async function cancelarEnvio(iso) {
+      const { html, url: final } = await requisitar(urlSemana(iso));
+      await postarFormulario(final, html, 'button_CancelaSubmissaoSemanal', {});
+      const depois = await lerSemana(iso);
+      if (depois.celulas.some((c) => c.status === '1')) throw new Error('O PSOffice não confirmou o cancelamento do envio.');
+      return depois;
+    }
+
     // ---------- ausências ----------
 
     function urlAusencias() {
@@ -346,7 +357,7 @@
     return {
       base, urlSemana, urlAusencias,
       lerSemana, salvarHoras, salvarComentario, lerComentario, lancar,
-      selecionarAtividades, enviarSemana,
+      selecionarAtividades, enviarSemana, cancelarEnvio,
       lerAusencias, registrarAusencia,
     };
   }

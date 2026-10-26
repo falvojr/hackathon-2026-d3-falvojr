@@ -198,6 +198,12 @@
           dia.situacao = 'sem-justificativa';
           dia.sugestao = { tipo: 'comentario', celulas: semComentario, comentario };
         }
+        // Lançado mas ainda não enviado (ou rejeitado): dá para corrigir horas e justificativa.
+        const editavel = celulas.filter((c) => c.minutos > 0 && !c.travado && c.aponId).sort((a, b) => b.minutos - a.minutos)[0];
+        if (editavel) dia.ajuste = { celula: editavel, horas: editavel.minutos / 60, comentarioSugerido: comentario };
+      } else if (data === hoje && !itens.length && util && !ausencia) {
+        // O dia ainda está em andamento: sem atividade até agora não é ausência.
+        dia.situacao = 'hoje';
       } else if (!util) {
         dia.situacao = feriados.has(data) ? 'feriado' : 'fim-de-semana';
         // Trabalhou no fim de semana ou feriado? Mostra a evidência, mas não sugere nada sozinho.

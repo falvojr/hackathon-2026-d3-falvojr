@@ -98,6 +98,9 @@
         // Ausência com trabalho no GitHub costuma ser hora não lançada (ex.: deploy em PRD no dia de folga).
         if (dia.itens.length) status += ` <span class="ah-alerta">· mas há ${dia.itens.length} atividade(s) no GitHub neste dia${dia.extra ? `, das ${esc(dia.extra.primeiro)} às ${esc(dia.extra.ultimo)}` : ''}</span>`;
         break;
+      case 'hoje':
+        status = '<span class="ah-mudo">Hoje · ainda sem atividade no GitHub</span>';
+        break;
       case 'ok':
         status = dia.minutos
           ? `<span class="ah-ok">${horasBr(dia.minutos)}h lançadas${dia.travado ? ' · enviadas' : ''}</span>`
@@ -137,10 +140,23 @@
           <button type="button" class="ah-btn" data-acao="lancar">Lançar</button>
         </div>`
       : '';
+    // Dia lançado e ainda não enviado/aprovado: corrigir horas (ex.: hora extra) e a justificativa.
+    const extra = dia.extra ? dia.extra.ateHoras : 0;
+    const formAjuste = dia.ajuste
+      ? `<div class="ah-ajuste" hidden>
+          <label class="ah-horas">Horas <input type="number" step="0.25" min="0" max="24" value="${esc(dia.ajuste.horas)}"></label>
+          ${extra ? `<button type="button" class="ah-btn ah-sec" data-acao="somar-extra-ajuste" data-extra="${extra}">+${String(extra).replace('.', ',')}h</button>` : ''}
+          <textarea class="ah-coment" rows="3" placeholder="Carregando a justificativa atual..."></textarea>
+          ${dia.ajuste.comentarioSugerido ? '<button type="button" class="ah-btn ah-sec" data-acao="incluir-links">+ links do Jira do dia</button>' : ''}
+          <button type="button" class="ah-btn" data-acao="salvar-ajuste">Salvar ajuste</button>
+        </div>`
+      : '';
+    if (dia.ajuste) status += ' <button type="button" class="ah-link" data-acao="mostrar-ajuste">Ajustar</button>';
     return `<div class="ah-dia ah-${dia.situacao}" data-data="${dia.data}">
       ${titulo}
       <div class="ah-dia-corpo">
         <div class="ah-status">${status}</div>
+        ${formAjuste}
         ${acao ? `<div class="ah-acao">${acao}</div>` : ''}
         ${formAusencia}${formHoras}
         ${linhaExtra(dia)}
@@ -209,6 +225,7 @@
       <footer>
         <button type="button" class="ah-btn" data-acao="aplicar-tudo" ${aplicaveis.length ? '' : 'disabled'}>Aplicar sugestões de horas e justificativas (${aplicaveis.length})</button>
         <button type="button" class="ah-btn ah-enviar" data-acao="enviar" ${abertas.length && semana.podeEnviar ? '' : 'disabled'}>Enviar semana para aprovação</button>
+        ${semana.podeCancelar ? '<button type="button" class="ah-btn ah-sec" data-acao="cancelar-envio">Cancelar envio para ajustar</button>' : ''}
         ${pend.length ? `<span class="ah-alerta">Pendente: ${pend.map((d) => esc(d.nome)).join(', ')}</span>` : abertas.length ? '' : '<span class="ah-ok">Nada para enviar</span>'}
       </footer>`;
 
@@ -243,6 +260,57 @@
         const comentario = area.querySelector('.ah-coment').value.trim();
         if (!(horas > 0 && horas <= 24)) return mensagem('Informe as horas (entre 0 e 24).', 'erro');
         return executar(botao, () => cliente.lancar(dia.sugestao.celula, horas, comentario, semana));
+      }
+
+      if (acao === 'mostrar-ajuste') {
+        const form = bloco.querySelector('.ah-ajuste');
+        form.hidden = false;
+        botao.hidden = true;
+        const campo = form.querySelector('.ah-coment');
+        cliente.lerComentario(dia.ajuste.celula).then(
+          (texto) => {
+            campo.value = texto;
+            campo.dataset.original = texto;
+            campo.placeholder = 'Justificativa (ex.: links do Jira)';
+          },
+          (e) => mensagem(e.message, 'erro')
+        );
+        return;
+      }
+
+      if (acao === 'somar-extra-ajuste') {
+        const campo = bloco.querySelector('.ah-ajuste input[type=number]');
+        campo.value = String(dia.ajuste.horas + Number(botao.dataset.extra));
+        botao.disabled = true;
+        return;
+      }
+
+      // Acrescenta só os links do dia que ainda não estão na justificativa.
+      if (acao === 'incluir-links') {
+        const campo = bloco.querySelector('.ah-ajuste .ah-coment');
+        const faltando = dia.ajuste.comentarioSugerido.split('\n').filter((l) => l && !campo.value.includes(l));
+        campo.value = [campo.value.trim(), ...faltando].filter(Boolean).join('\n');
+        botao.disabled = true;
+        return;
+      }
+
+      if (acao === 'salvar-ajuste') {
+        const form = bloco.querySelector('.ah-ajuste');
+        const horas = parseFloat(form.querySelector('input[type=number]').value);
+        const campo = form.querySelector('.ah-coment');
+        if (!(horas > 0 && horas <= 24)) return mensagem('Informe as horas (entre 0 e 24).', 'erro');
+        const mudouHoras = Math.round(horas * 60) !== Math.round(dia.ajuste.horas * 60);
+        const mudouComentario = campo.dataset.original !== undefined && campo.value.trim() !== campo.dataset.original.trim();
+        if (!mudouHoras && !mudouComentario) return mensagem('Nada mudou.', '');
+        return executar(botao, async () => {
+          if (mudouHoras) await cliente.salvarHoras(dia.ajuste.celula, horas, semana);
+          if (mudouComentario) await cliente.salvarComentario(dia.ajuste.celula.aponId, campo.value.trim());
+        });
+      }
+
+      if (acao === 'cancelar-envio') {
+        if (!confirm('Cancelar o envio desta semana para poder ajustar horas e justificativas? Depois é preciso enviar de novo.')) return;
+        return executar(botao, () => cliente.cancelarEnvio(iso));
       }
 
       if (acao === 'justificar') {

@@ -50,6 +50,13 @@ function criarLeitor(cfg) {
 
 const DATA = /^\d{4}-\d{2}-\d{2}$/;
 
+// Fontes de evidência. Cada conector recebe o período e devolve { porDia: { 'AAAA-MM-DD': [{ ts, fonte, repo, texto, url }] }, avisos }.
+// Hoje só há o GitHub; Jira, GitLab, Azure DevOps ou agenda entram aqui com o mesmo formato
+// (e com a sua própria lista de leituras permitidas).
+const CONECTORES = {
+  github: ({ chamar, cfg, inicio, fim }) => GitHub.evidencias({ chamar, login: cfg.login, inicio, fim }),
+};
+
 async function tratar(msg, cfg) {
   const chamar = criarLeitor(cfg);
   if (msg.tipo === 'usuario') {
@@ -60,10 +67,27 @@ async function tratar(msg, cfg) {
   if (msg.tipo === 'evidencias') {
     if (!DATA.test(msg.inicio) || !DATA.test(msg.fim) || msg.inicio > msg.fim) throw new Error('Período inválido.');
     if (R.intervalo(msg.inicio, msg.fim).length > 62) throw new Error('Período maior que 62 dias.');
-    const r = await GitHub.evidencias({ chamar, login: cfg.login, inicio: msg.inicio, fim: msg.fim });
-    // Mensagens do native messaging têm limite de 1 MB: textos longos são cortados.
-    for (const itens of Object.values(r.porDia)) for (const it of itens) it.texto = it.texto.slice(0, 200);
-    return Object.assign(r, { login: cfg.login });
+    // Junta as evidências de todos os conectores ligados; um conector com problema não derruba os outros.
+    const r = { porDia: {}, avisos: [], login: cfg.login };
+    for (const nome of cfg.conectores || ['github']) {
+      const conector = CONECTORES[nome];
+      if (!conector) {
+        r.avisos.push(`Conector desconhecido: ${nome}`);
+        continue;
+      }
+      try {
+        const parcial = await conector({ chamar, cfg, inicio: msg.inicio, fim: msg.fim });
+        r.avisos.push(...parcial.avisos);
+        for (const [dia, itens] of Object.entries(parcial.porDia)) {
+          // Mensagens do native messaging têm limite de 1 MB: textos longos são cortados.
+          for (const it of itens) Object.assign(it, { conector: nome, texto: it.texto.slice(0, 200) });
+          r.porDia[dia] = (r.porDia[dia] || []).concat(itens).sort((a, b) => a.ts.localeCompare(b.ts));
+        }
+      } catch (e) {
+        r.avisos.push(`${nome}: ${e.message}`);
+      }
+    }
+    return r;
   }
   throw new Error(`Pergunta desconhecida: ${msg.tipo}`);
 }

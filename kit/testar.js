@@ -108,8 +108,30 @@ teste('análise da semana: horas, ausência, justificativa, futuro e hora extra'
   assert.deepStrictEqual(Regras.pendencias(a).map((d) => d.data), ['2026-10-19', '2026-10-20']);
 });
 
-teste('dia útil passado sem horas e sem GitHub sugere ausência', () => {
+teste('hoje sem atividade ainda não vira sugestão de ausência', () => {
   const a = Regras.analisarSemana({ semana: semanaFicticia({}), ausencias: [], feriados: new Set(), evidencias: {}, cfg: {}, hoje: '2026-10-19' });
+  assert.strictEqual(a.dias[1].situacao, 'hoje');
+  assert.strictEqual(Regras.pendencias(a).length, 0);
+});
+
+teste('dia lançado e não enviado pode ser ajustado; enviado não', () => {
+  const semana = {
+    inicio: '2026-10-18',
+    atividades: [{ atribId: '1' }],
+    celulas: [
+      { atribId: '1', data: '2026-10-20', minutos: 480, temComentario: true, travado: false, aponId: '10' },
+      { atribId: '1', data: '2026-10-21', minutos: 480, temComentario: true, travado: true, aponId: '11' },
+    ],
+  };
+  const evidencias = { '2026-10-20': [{ ts: '2026-10-20T21:00:00-03:00', fonte: 'pr', repo: 'org/api', texto: 'ABC-1 [PRD]' }] };
+  const a = Regras.analisarSemana({ semana, ausencias: [], feriados: new Set(), evidencias, cfg: { jiraBase: 'https://j/browse/' }, hoje: '2026-10-23' });
+  assert.deepStrictEqual([a.dias[2].ajuste.horas, a.dias[2].ajuste.comentarioSugerido], [8, 'https://j/browse/ABC-1']);
+  assert.strictEqual(a.dias[2].extra.ateHoras, 3);
+  assert.strictEqual(a.dias[3].ajuste, undefined);
+});
+
+teste('dia útil passado sem horas e sem GitHub sugere ausência', () => {
+  const a = Regras.analisarSemana({ semana: semanaFicticia({}), ausencias: [], feriados: new Set(), evidencias: {}, cfg: {}, hoje: '2026-10-20' });
   assert.strictEqual(a.dias[1].situacao, 'sugerir-ausencia');
 });
 

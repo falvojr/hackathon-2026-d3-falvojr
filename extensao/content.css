@@ -70,3 +70,5 @@
 #assistente-horas .ah-fonte { display: inline-block; min-width: 72px; color: #6b7785; }
 #assistente-horas .ah-extra { margin-top: 4px; padding: 3px 8px; background: #fff4e5; border-radius: 4px; color: #8a4b00; }
 #assistente-horas .ah-extra .ah-btn { padding: 1px 8px; margin-left: 6px; }
+#assistente-horas .ah-ajuste { display: flex; flex-wrap: wrap; gap: 8px; align-items: flex-start; margin-top: 6px; }
+#assistente-horas .ah-status .ah-link { margin-left: 6px; }
