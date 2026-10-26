@@ -85,7 +85,7 @@ Hoje a fonte de atividade é o GitHub, o que atende quem desenvolve. Para outros
 
 ## 4. Evidências
 
-O GIF do topo, passo a passo, com telas reais do uso (semanas de 04 a 26/10). Os quadros são da evolução da extensão nesses dias: nos passos 1 e 6 o botão ainda se chamava "Aplicar sugestões" (hoje "Revisar sugestões"); nos passos 4 e 5 a linha de domingo foi retirada do quadro porque mostrava a estimativa de hora extra de fim de semana anterior à correção do item 5.12. Nome, projeto, conta, repositórios, títulos e chaves do Jira estão **mascarados**.
+O GIF do topo, passo a passo, com telas reais do uso (semanas de 04 a 26/10). Os quadros são da evolução da extensão nesses dias: nos passos 1 e 6 o botão ainda se chamava "Aplicar sugestões" (hoje "Revisar sugestões"); nos passos 4 e 5 a linha de domingo foi retirada do quadro porque mostrava a estimativa de hora extra de fim de semana anterior à correção (erro 12 da seção 5). Nome, projeto, conta, repositórios, títulos e chaves do Jira estão **mascarados**.
 
 | Passo | Tela |
 |---|---|
