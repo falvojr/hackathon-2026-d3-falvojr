@@ -59,11 +59,15 @@
     const x = dia.extra;
     if (!x || ['futuro', 'ausencia'].includes(dia.situacao)) return '';
     const prd = x.prd.length ? ` · inclui ${x.prd.map((t) => `<em>${esc(t)}</em>`).join(', ')}` : '';
+    const sessoes = x.sessoes > 1 ? `${x.sessoes} sessões` : '1 sessão';
+    const fora = `~${String(x.horas).replace('.', ',')}h fora do expediente em ${sessoes} (${esc(x.primeiro)}–${esc(x.ultimo)})`;
+    // Já lançado o suficiente? Só informa, sem sugerir nada.
+    if (x.coberto) return `<div class="ah-extra ah-coberto">Atividade fora do expediente: ${fora}${prd}. Já coberta pelas ${horasBr(dia.minutos)}h lançadas.</div>`;
     const botao = dia.situacao === 'sugerir-horas'
-      ? ` <button type="button" class="ah-btn ah-sec" data-acao="somar-extra" data-extra="${x.ateHoras}">+${String(x.ateHoras).replace('.', ',')}h</button>`
+      ? ` <button type="button" class="ah-btn ah-sec" data-acao="somar-extra" data-alvo="${x.alvo}">Usar ${String(x.alvo).replace('.', ',')}h</button>`
       : '';
     const lancado = dia.minutos ? ` Lançado: ${horasBr(dia.minutos)}h.` : '';
-    return `<div class="ah-extra">Possível hora extra: atividade das ${esc(x.primeiro)} às ${esc(x.ultimo)} (até +${String(x.ateHoras).replace('.', ',')}h fora do expediente)${prd}.${lancado}${botao}</div>`;
+    return `<div class="ah-extra">Possível hora extra: ${fora}${prd}.${lancado}${botao}</div>`;
   }
 
   function linhaEvidencias(dia) {
@@ -141,11 +145,12 @@
         </div>`
       : '';
     // Dia lançado e ainda não enviado/aprovado: corrigir horas (ex.: hora extra) e a justificativa.
-    const extra = dia.extra ? dia.extra.ateHoras : 0;
+    // Horas da célula para o dia chegar ao total com a hora extra (0 se o lançado já cobre).
+    const alvoCelula = dia.extra && !dia.extra.coberto && dia.ajuste ? dia.ajuste.horas + (dia.extra.alvo - dia.minutos / 60) : 0;
     const formAjuste = dia.ajuste
       ? `<div class="ah-ajuste" hidden>
           <label class="ah-horas">Horas <input type="number" step="0.25" min="0" max="24" value="${esc(dia.ajuste.horas)}"></label>
-          ${extra ? `<button type="button" class="ah-btn ah-sec" data-acao="somar-extra-ajuste" data-extra="${extra}">+${String(extra).replace('.', ',')}h</button>` : ''}
+          ${alvoCelula ? `<button type="button" class="ah-btn ah-sec" data-acao="somar-extra-ajuste" data-alvo="${alvoCelula}">Hora extra: ${String(alvoCelula).replace('.', ',')}h</button>` : ''}
           <textarea class="ah-coment" rows="3" placeholder="Carregando a justificativa atual..."></textarea>
           ${dia.ajuste.comentarioSugerido ? '<button type="button" class="ah-btn ah-sec" data-acao="incluir-links">+ links do Jira do dia</button>' : ''}
           <button type="button" class="ah-btn" data-acao="salvar-ajuste">Salvar ajuste</button>
@@ -290,7 +295,7 @@
       if (acao === 'mostrar-horas') return (bloco.querySelector('.ah-horas-extra').hidden = false);
       if (acao === 'somar-extra') {
         const campo = bloco.querySelector('.ah-acao input[type=number]');
-        campo.value = (dia.sugestao.horas + Number(botao.dataset.extra)).toString();
+        campo.value = botao.dataset.alvo;
         botao.disabled = true;
         return;
       }
@@ -329,7 +334,7 @@
 
       if (acao === 'somar-extra-ajuste') {
         const campo = bloco.querySelector('.ah-ajuste input[type=number]');
-        campo.value = String(dia.ajuste.horas + Number(botao.dataset.extra));
+        campo.value = botao.dataset.alvo;
         botao.disabled = true;
         return;
       }

@@ -131,25 +131,47 @@
     return h * 60 + m;
   }
 
+  const INTERVALO_SESSAO = 60; // eventos até 60 min um do outro são a mesma sessão de trabalho
+  const MINIMO_SESSAO = 30; // cada sessão vale pelo menos meia hora (um review isolado, por exemplo)
+
   /**
-   * Indício de hora extra: atividade no GitHub depois do fim do expediente (ou antes do início).
-   * É só um indício (comentar um PR à noite não é trabalhar a noite toda), por isso vira
-   * um aviso com teto sugerido, nunca um valor aplicado sozinho.
+   * Indício de hora extra: atividade no GitHub fora do expediente (fim de semana/feriado: o dia todo).
+   * Os eventos são agrupados em sessões; cada sessão conta do primeiro ao último evento mais meia
+   * hora, e o total é arredondado para 0,5h. Um comentário às 21h vira 0,5h, não "das 18h às 21h".
+   * É só um indício, por isso vira aviso e sugestão desmarcada, nunca um valor aplicado sozinho.
    */
   function indicioHoraExtra(itens, cfg, diaUtil) {
     if (!itens.length) return null;
-    const horas = itens.map((it) => horaLocal(it.ts)).sort();
-    const primeiro = horas[0];
-    const ultimo = horas[horas.length - 1];
     const fim = minutosDoDia(cfg.fimExpediente || '18:00');
     const inicio = minutosDoDia(cfg.inicioExpediente || '08:00');
-    // Fim de semana/feriado não tem expediente: conta o intervalo da atividade (mínimo de meia hora).
-    const minutos = diaUtil === false
-      ? Math.max(30, minutosDoDia(ultimo) - minutosDoDia(primeiro))
-      : Math.max(0, minutosDoDia(ultimo) - fim) + Math.max(0, inicio - minutosDoDia(primeiro));
+    const fora = itens
+      .map((it) => minutosDoDia(horaLocal(it.ts)))
+      .filter((m) => diaUtil === false || m < inicio || m > fim)
+      .sort((a, b) => a - b);
+    if (!fora.length) return null;
+    const sessoes = [];
+    for (const m of fora) {
+      const atual = sessoes[sessoes.length - 1];
+      if (atual && m - atual.fim <= INTERVALO_SESSAO) atual.fim = m;
+      else sessoes.push({ inicio: m, fim: m });
+    }
+    const minutos = sessoes.reduce((s, x) => s + (x.fim - x.inicio) + MINIMO_SESSAO, 0);
+    const hhmm = (m) => `${String(Math.floor(m / 60)).padStart(2, '0')}:${String(m % 60).padStart(2, '0')}`;
     const prd = itens.filter((it) => RE_PRD.test(it.texto)).map((it) => it.texto);
-    if (minutos < 30) return null;
-    return { primeiro, ultimo, ateHoras: Math.ceil(minutos / 30) / 2, prd: [...new Set(prd)].slice(0, 3) };
+    return {
+      primeiro: hhmm(fora[0]),
+      ultimo: hhmm(fora[fora.length - 1]),
+      sessoes: sessoes.length,
+      horas: Math.max(0.5, Math.round(minutos / 30) / 2),
+      prd: [...new Set(prd)].slice(0, 3),
+    };
+  }
+
+  // Horas que o dia deveria ter se a hora extra se confirmar: compara com o já lançado, nunca soma por cima.
+  function horasComExtra(extra, lancadas, diaUtil, jornada) {
+    if (!extra) return lancadas;
+    const esperado = diaUtil === false ? extra.horas : jornada + extra.horas;
+    return Math.max(lancadas, esperado);
   }
 
   // ---------- análise da semana do PSOffice ----------
@@ -191,6 +213,11 @@
       for (const it of itens) for (const k of extrairChaves(it.texto, cfg.prefixosJira)) if (!dia.chaves.includes(k)) dia.chaves.push(k);
       const util = ehDiaUtil(data, feriados);
       dia.extra = indicioHoraExtra(itens, cfg, util);
+      if (dia.extra) {
+        // Total que o dia teria com a hora extra; se o lançado já cobre, não há o que sugerir.
+        dia.extra.alvo = horasComExtra(dia.extra, minutos / 60, util, jornada);
+        dia.extra.coberto = minutos > 0 && dia.extra.alvo <= minutos / 60;
+      }
       const celulaPrincipal = celulas.find((c) => c.atribId === principal);
       if (minutos > 0) {
         const semComentario = celulas.filter((c) => c.minutos > 0 && !c.temComentario && !c.travado);
@@ -262,12 +289,13 @@
             depois: { horas: horas(c), comentario: [atual.trim(), ...faltando].filter(Boolean).join('\n') },
           }));
         }
-        if (d.extra) {
+        if (d.extra && !d.extra.coberto) {
+          const sessoes = d.extra.sessoes > 1 ? `${d.extra.sessoes} sessões` : '1 sessão';
           mudancas.push(Object.assign({}, base, {
             id: `${d.data}-extra`, tipo: 'extra', celula: c, marcada: false,
-            nota: `atividade das ${d.extra.primeiro} às ${d.extra.ultimo}${d.extra.prd.length ? ', com deploy/hotfix' : ''}`,
+            nota: `~${String(d.extra.horas).replace('.', ',')}h fora do expediente em ${sessoes} (${d.extra.primeiro}–${d.extra.ultimo})${d.extra.prd.length ? ', com deploy/hotfix' : ''}`,
             antes: { horas: horas(c), comentario: atual },
-            depois: { horas: horas(c) + d.extra.ateHoras, comentario: atual },
+            depois: { horas: horas(c) + (d.extra.alvo - d.minutos / 60), comentario: atual },
           }));
         }
       }
@@ -285,7 +313,7 @@
     paraDate, deDate, somarDias, diaDaSemana, paraBr, deBr, dataLocal, horaLocal,
     inicioDaSemana, intervalo, ehDiaUtil, diasUteis,
     diasSemLancamento,
-    extrairChaves, montarComentario, indicioHoraExtra,
+    extrairChaves, montarComentario, indicioHoraExtra, horasComExtra,
     atividadePrincipal, analisarSemana, montarMudancas, pendencias,
   };
 

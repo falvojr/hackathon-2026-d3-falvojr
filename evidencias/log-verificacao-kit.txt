@@ -1,10 +1,10 @@
-[2026-10-26T11:32:14.747Z] Lidos 60 colaboradores, 572 lançamentos, 1 feriado(s).
-[2026-10-26T11:32:14.751Z] Período 2026-10-09 a 2026-10-22: 9 dias úteis (sem fins de semana e feriados).
-[2026-10-26T11:32:14.762Z] 61 dia(s) sem lançamento de 15 colaborador(es). Saída: evidencias\dias_sem_lancamento.csv
-[2026-10-26T11:32:14.762Z]   Gestor 01: 19 dia(s) a cobrar
-[2026-10-26T11:32:14.762Z]   Gestor 02: 2 dia(s) a cobrar
-[2026-10-26T11:32:14.762Z]   Gestor 03: 2 dia(s) a cobrar
-[2026-10-26T11:32:14.763Z]   Gestor 04: 9 dia(s) a cobrar
-[2026-10-26T11:32:14.763Z]   Gestor 05: 17 dia(s) a cobrar
-[2026-10-26T11:32:14.763Z]   Gestor 06: 12 dia(s) a cobrar
-[2026-10-26T11:32:14.763Z] OK: idêntico ao esperado (61 linhas).
+[2026-10-26T11:46:27.298Z] Lidos 60 colaboradores, 572 lançamentos, 1 feriado(s).
+[2026-10-26T11:46:27.303Z] Período 2026-10-09 a 2026-10-22: 9 dias úteis (sem fins de semana e feriados).
+[2026-10-26T11:46:27.314Z] 61 dia(s) sem lançamento de 15 colaborador(es). Saída: evidencias\dias_sem_lancamento.csv
+[2026-10-26T11:46:27.314Z]   Gestor 01: 19 dia(s) a cobrar
+[2026-10-26T11:46:27.314Z]   Gestor 02: 2 dia(s) a cobrar
+[2026-10-26T11:46:27.314Z]   Gestor 03: 2 dia(s) a cobrar
+[2026-10-26T11:46:27.314Z]   Gestor 04: 9 dia(s) a cobrar
+[2026-10-26T11:46:27.314Z]   Gestor 05: 17 dia(s) a cobrar
+[2026-10-26T11:46:27.314Z]   Gestor 06: 12 dia(s) a cobrar
+[2026-10-26T11:46:27.315Z] OK: idêntico ao esperado (61 linhas).

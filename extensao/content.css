@@ -80,3 +80,4 @@
 #assistente-horas .ah-rev-dia { white-space: nowrap; font-weight: 600; }
 #assistente-horas .ah-rev-coment { font: 11px/1.4 Consolas, monospace; color: #3b4a5a; margin-top: 2px; word-break: break-all; }
 #assistente-horas .ah-novo { color: #1a7f37; }
+#assistente-horas .ah-extra.ah-coberto { background: #eef2f6; color: #5b6b7c; }

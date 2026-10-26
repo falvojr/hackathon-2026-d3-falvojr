@@ -103,7 +103,7 @@ teste('análise da semana: horas, ausência, justificativa, futuro e hora extra'
   const ter = a.dias[2];
   assert.strictEqual(ter.sugestao.horas, 8);
   assert.strictEqual(ter.sugestao.comentario, 'https://j/browse/ABC-2');
-  assert.deepStrictEqual([ter.extra.ultimo, ter.extra.ateHoras], ['21:40', 4]);
+  assert.deepStrictEqual([ter.extra.ultimo, ter.extra.horas, ter.extra.alvo], ['21:40', 0.5, 8.5]);
   assert.strictEqual(ter.extra.prd.length, 1);
   assert.deepStrictEqual(Regras.pendencias(a).map((d) => d.data), ['2026-10-19', '2026-10-20']);
 });
@@ -126,7 +126,7 @@ teste('dia lançado e não enviado pode ser ajustado; enviado não', () => {
   const evidencias = { '2026-10-20': [{ ts: '2026-10-20T21:00:00-03:00', fonte: 'pr', repo: 'org/api', texto: 'ABC-1 [PRD]' }] };
   const a = Regras.analisarSemana({ semana, ausencias: [], feriados: new Set(), evidencias, cfg: { jiraBase: 'https://j/browse/' }, hoje: '2026-10-23' });
   assert.deepStrictEqual([a.dias[2].ajuste.horas, a.dias[2].ajuste.comentarioSugerido], [8, 'https://j/browse/ABC-1']);
-  assert.strictEqual(a.dias[2].extra.ateHoras, 3);
+  assert.deepStrictEqual([a.dias[2].extra.horas, a.dias[2].extra.coberto], [0.5, false]);
   assert.strictEqual(a.dias[3].ajuste, undefined);
 });
 
@@ -155,14 +155,35 @@ teste('revisão lista o que mudaria: horas novas, links que faltam e hora extra 
     ['2026-10-20', 'extra', false],
   ]);
   assert.strictEqual(m[1].depois.comentario, 'https://j/browse/ABC-2\nhttps://j/browse/ABC-3');
-  assert.deepStrictEqual([m[2].antes.horas, m[2].depois.horas], [8, 10.5]);
+  assert.deepStrictEqual([m[2].antes.horas, m[2].depois.horas], [8, 8.5]);
 });
 
-teste('hora extra em fim de semana conta o intervalo da atividade, não o expediente', () => {
-  const um = [{ ts: '2026-10-25T20:19:00-03:00', fonte: 'pr', repo: 'org/api', texto: 'x' }];
-  assert.strictEqual(Regras.indicioHoraExtra(um, {}, false).ateHoras, 0.5);
-  const tarde = [{ ts: '2026-10-25T14:00:00-03:00', fonte: 'pr', repo: 'org/api', texto: 'x' }, { ts: '2026-10-25T17:10:00-03:00', fonte: 'pr', repo: 'org/api', texto: 'y' }];
-  assert.strictEqual(Regras.indicioHoraExtra(tarde, {}, false).ateHoras, 3.5);
+const evento = (ts) => ({ ts, fonte: 'pr', repo: 'org/api', texto: 'x' });
+
+teste('hora extra por sessões: eventos próximos somam, isolados valem meia hora', () => {
+  // Um review isolado no domingo: meia hora, não "o dia todo".
+  assert.strictEqual(Regras.indicioHoraExtra([evento('2026-10-25T20:19:00-03:00')], {}, false).horas, 0.5);
+  // Fim de semana: 14:00 e 17:10 estão longe um do outro, são duas sessões de meia hora.
+  const tarde = [evento('2026-10-25T14:00:00-03:00'), evento('2026-10-25T17:10:00-03:00')];
+  assert.deepStrictEqual([Regras.indicioHoraExtra(tarde, {}, false).horas, Regras.indicioHoraExtra(tarde, {}, false).sessoes], [1, 2]);
+  // Dia útil: expediente não conta; 19:00-19:40 é uma sessão (40 + 30 min) e 21:30 outra (30 min) = 1h40 -> 1,5h.
+  const noite = [evento('2026-10-20T10:00:00-03:00'), evento('2026-10-20T19:00:00-03:00'), evento('2026-10-20T19:40:00-03:00'), evento('2026-10-20T21:30:00-03:00')];
+  const x = Regras.indicioHoraExtra(noite, {}, true);
+  assert.deepStrictEqual([x.horas, x.sessoes, x.primeiro, x.ultimo], [1.5, 2, '19:00', '21:30']);
+  // Só atividade dentro do expediente: sem indício.
+  assert.strictEqual(Regras.indicioHoraExtra([evento('2026-10-20T10:00:00-03:00')], {}, true), null);
+});
+
+teste('hora extra compara com o já lançado em vez de somar por cima', () => {
+  const x = { horas: 0.5 };
+  assert.strictEqual(Regras.horasComExtra(x, 1, false, 8), 1); // domingo: 1h lançada já cobre o review de 30 min
+  assert.strictEqual(Regras.horasComExtra(x, 0, false, 8), 0.5);
+  assert.strictEqual(Regras.horasComExtra(x, 8, true, 8), 8.5); // dia útil: jornada + extra
+  assert.strictEqual(Regras.horasComExtra(x, 9, true, 8), 9); // já lançou mais que jornada + extra
+  const semana = { inicio: '2026-10-25', atividades: [{ atribId: '1' }], celulas: [{ atribId: '1', data: '2026-10-25', minutos: 60, temComentario: true, travado: false, aponId: '7' }] };
+  const a = Regras.analisarSemana({ semana, ausencias: [], feriados: new Set(), evidencias: { '2026-10-25': [evento('2026-10-25T20:19:00-03:00')] }, cfg: {}, hoje: '2026-10-26' });
+  assert.strictEqual(a.dias[0].extra.coberto, true);
+  assert.strictEqual(Regras.montarMudancas(a, { '2026-10-25': 'ok' }).filter((m) => m.tipo === 'extra').length, 0);
 });
 
 teste('dia útil passado sem horas e sem GitHub sugere ausência', () => {
