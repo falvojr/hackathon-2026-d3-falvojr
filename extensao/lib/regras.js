@@ -136,14 +136,17 @@
    * É só um indício (comentar um PR à noite não é trabalhar a noite toda), por isso vira
    * um aviso com teto sugerido, nunca um valor aplicado sozinho.
    */
-  function indicioHoraExtra(itens, cfg) {
+  function indicioHoraExtra(itens, cfg, diaUtil) {
     if (!itens.length) return null;
     const horas = itens.map((it) => horaLocal(it.ts)).sort();
     const primeiro = horas[0];
     const ultimo = horas[horas.length - 1];
     const fim = minutosDoDia(cfg.fimExpediente || '18:00');
     const inicio = minutosDoDia(cfg.inicioExpediente || '08:00');
-    const minutos = Math.max(0, minutosDoDia(ultimo) - fim) + Math.max(0, inicio - minutosDoDia(primeiro));
+    // Fim de semana/feriado não tem expediente: conta o intervalo da atividade (mínimo de meia hora).
+    const minutos = diaUtil === false
+      ? Math.max(30, minutosDoDia(ultimo) - minutosDoDia(primeiro))
+      : Math.max(0, minutosDoDia(ultimo) - fim) + Math.max(0, inicio - minutosDoDia(primeiro));
     const prd = itens.filter((it) => RE_PRD.test(it.texto)).map((it) => it.texto);
     if (minutos < 30) return null;
     return { primeiro, ultimo, ateHoras: Math.ceil(minutos / 30) / 2, prd: [...new Set(prd)].slice(0, 3) };
@@ -186,9 +189,8 @@
         sugestao: null,
       };
       for (const it of itens) for (const k of extrairChaves(it.texto, cfg.prefixosJira)) if (!dia.chaves.includes(k)) dia.chaves.push(k);
-      dia.extra = indicioHoraExtra(itens, cfg);
-
       const util = ehDiaUtil(data, feriados);
+      dia.extra = indicioHoraExtra(itens, cfg, util);
       const celulaPrincipal = celulas.find((c) => c.atribId === principal);
       if (minutos > 0) {
         const semComentario = celulas.filter((c) => c.minutos > 0 && !c.temComentario && !c.travado);

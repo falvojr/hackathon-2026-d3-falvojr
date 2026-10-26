@@ -34,6 +34,7 @@ PASSOS = [
     ("painel.png", "O painel aparece em cima da grade de Horas do PSOffice", 4.5),
     ("evidencias.png", "Cada dia mostra o que foi feito: PRs, commits e chaves do Jira", 4.5),
     ("hora-extra.png", "Atividade fora do expediente vira aviso de possível hora extra", 4.5),
+    ("revisar.png", "Revisar sugestões: veja o antes → depois e grave só o que marcar", 5),
     ("hoje.png", "Semana atual: hoje sem atividade ainda não conta como ausência", 4.5),
     ("cancelar-envio.png", "Semana enviada e não aprovada: dá para cancelar o envio e ajustar", 4.5),
 ]

@@ -158,6 +158,13 @@ teste('revisão lista o que mudaria: horas novas, links que faltam e hora extra 
   assert.deepStrictEqual([m[2].antes.horas, m[2].depois.horas], [8, 10.5]);
 });
 
+teste('hora extra em fim de semana conta o intervalo da atividade, não o expediente', () => {
+  const um = [{ ts: '2026-10-25T20:19:00-03:00', fonte: 'pr', repo: 'org/api', texto: 'x' }];
+  assert.strictEqual(Regras.indicioHoraExtra(um, {}, false).ateHoras, 0.5);
+  const tarde = [{ ts: '2026-10-25T14:00:00-03:00', fonte: 'pr', repo: 'org/api', texto: 'x' }, { ts: '2026-10-25T17:10:00-03:00', fonte: 'pr', repo: 'org/api', texto: 'y' }];
+  assert.strictEqual(Regras.indicioHoraExtra(tarde, {}, false).ateHoras, 3.5);
+});
+
 teste('dia útil passado sem horas e sem GitHub sugere ausência', () => {
   const a = Regras.analisarSemana({ semana: semanaFicticia({}), ausencias: [], feriados: new Set(), evidencias: {}, cfg: {}, hoje: '2026-10-20' });
   assert.strictEqual(a.dias[1].situacao, 'sugerir-ausencia');

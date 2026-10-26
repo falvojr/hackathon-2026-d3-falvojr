@@ -9,10 +9,11 @@ ok - análise da semana: horas, ausência, justificativa, futuro e hora extra
 ok - hoje sem atividade ainda não vira sugestão de ausência
 ok - dia lançado e não enviado pode ser ajustado; enviado não
 ok - revisão lista o que mudaria: horas novas, links que faltam e hora extra desmarcada
+ok - hora extra em fim de semana conta o intervalo da atividade, não o expediente
 ok - dia útil passado sem horas e sem GitHub sugere ausência
 ok - formulário serializado como o navegador (checkbox, select, textarea, botão clicado)
 ok - HTML malformado do PSOffice: aspas sobrando e ">" dentro de atributo
 ok - codificação windows-1252 igual à do navegador
 ok - atributos com JSON entre aspas simples
 
-16 testes passaram.
+17 testes passaram.

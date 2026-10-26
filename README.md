@@ -85,20 +85,21 @@ Hoje a fonte de atividade é o GitHub, o que atende quem desenvolve. Para outros
 
 ## 4. Evidências
 
-O GIF do topo, passo a passo, com telas reais do uso (semanas de 04 a 26/10). Nome, projeto, conta, repositórios, títulos e chaves do Jira estão **mascarados**.
+O GIF do topo, passo a passo, com telas reais do uso (semanas de 04 a 26/10). No passo 4 a linha de domingo (hora extra estimada pela regra anterior, já corrigida) foi ocultada do quadro. Nome, projeto, conta, repositórios, títulos e chaves do Jira estão **mascarados**.
 
 | Passo | Tela |
 |---|---|
 | 1. O painel aparece em cima da grade de Horas do PSOffice | ![Painel](evidencias/prints/quadros/painel.png) |
 | 2. Cada dia mostra o que foi feito: PRs, commits e chaves do Jira | ![Evidências de um dia](evidencias/prints/quadros/evidencias.png) |
 | 3. Atividade fora do expediente vira aviso de possível hora extra | ![Hora extra](evidencias/prints/quadros/hora-extra.png) |
-| 4. Semana atual: hoje sem atividade ainda não conta como ausência | ![Hoje](evidencias/prints/quadros/hoje.png) |
-| 5. Semana enviada e não aprovada: cancelar o envio para ajustar | ![Cancelar envio](evidencias/prints/quadros/cancelar-envio.png) |
+| 4. Revisar sugestões: o antes → depois de cada dia, gravando só o que estiver marcado | ![Revisar sugestões](evidencias/prints/quadros/revisar.png) |
+| 5. Semana atual: hoje sem atividade ainda não conta como ausência | ![Hoje](evidencias/prints/quadros/hoje.png) |
+| 6. Semana enviada e não aprovada: cancelar o envio para ajustar | ![Cancelar envio](evidencias/prints/quadros/cancelar-envio.png) |
 
 Como gerar de novo: com o painel carregado, cole `kit/anonimizar-tela.js` no console (F12) e tire os prints; depois `python kit/montar-gif.py evidencias/prints/quadros evidencias/prints/assistente-horas-demo.gif` monta o GIF com as legendas (requer Pillow). O script de máscara não contém dado real: descobre na página o que esconder.
 
 - `evidencias/log-verificacao-kit.txt` e `evidencias/dias_sem_lancamento.csv`: regra do kit **idêntica ao esperado (61 linhas)**; rodar de novo gera o mesmo arquivo.
-- `evidencias/log-testes.txt`: 16 testes passando.
+- `evidencias/log-testes.txt`: 17 testes passando.
 - No PSOffice real (só na conta do autor, com autorização): leitura de semanas, ausências e justificativas; regravação de horas e justificativa conferida; seleção automática das atividades da semana seguinte; envio de uma semana para aprovação. Os formulários de ausência, atividades e envio foram comparados campo a campo com o que o navegador envia.
 
 ## 5. Onde a IA errou
@@ -114,6 +115,33 @@ Como gerar de novo: com o painel carregado, cole `kit/anonimizar-tela.js` no con
 9. **A primeira máscara de prints deixou o sobrenome**: trocou o primeiro nome antes do nome completo. Pego ao revisar o print, antes de salvar; agora troca do mais longo para o mais curto e confere se sobrou dado real. Essa conferência pegou um segundo caso: o painel terminava de carregar depois da máscara e trazia o nome do projeto; o script passou a ler o projeto também do cabeçalho do painel.
 10. **Sugeria ausência para o dia de hoje** antes de qualquer atividade. Hoje sem atividade não é pendência.
 11. **O primeiro GIF era pouco claro**: página inteira reduzida, 4 quadros e nada dizendo o que olhar. Refeito em passos legendados, com recortes ampliados e tempo de leitura (`kit/montar-gif.py`).
+
+## Como a IA foi usada
+
+Todo o desenvolvimento foi feito em par com o **Claude Code** (app desktop, aba Code), usando o modelo **Claude Opus 5.5 com esforço Alto**, em uma única sessão de 23 a 26/10/2026.
+
+| Etapa | O que a IA fez | O que a pessoa decidiu ou validou |
+|---|---|---|
+| Entendimento | Leu o kit e os slides; explorou o PSOffice só lendo (navegador embutido, com o login feito pela pessoa) e mapeou telas, endpoints e formulários | Escolheu a dor (horas não lançadas) e pediu algo usável de verdade, sem mock |
+| Construção | Escreveu a extensão, a ponte local, as regras, os testes e o instalador | Trocou o token na extensão pela ponte com o `gh`, por causa do monitoramento de tokens do cliente; pediu só links do Jira na justificativa |
+| Validação | Rodou testes, a regra contra o esperado do kit e comparou cada formulário com o que o navegador envia; testou no PSOffice real | Autorizou, uma a uma, as gravações reais (atividades, regravação de horas, envio da semana) e conferiu no Chrome (Claude in Chrome) |
+| Evidências | Criou a máscara de dados, capturou prints e montou o GIF | Pediu evidências mais claras, a revisão de sugestões e o repositório público sem dados sensíveis |
+
+Ferramentas usadas pela IA: terminal, edição de arquivos, navegador embutido do app, Claude in Chrome e o `gh` da pessoa. Os erros da IA e as correções estão no item 5.
+
+## Premissas do desafio
+
+| Premissa (slides e kit) | Como foi atendida |
+|---|---|
+| Projeto individual, um repositório `hackathon-2026-d3-<usuário>` | Este repositório |
+| Só dados fictícios; nada de dado de cliente ou de colaborador | A regra é validada com a massa fictícia do kit. As telas do uso real só aparecem **mascaradas** (pessoa, projeto, conta, repositórios, títulos, chaves e links do Jira) |
+| Nenhuma senha, chave ou token real em código, prompt ou tela | Sessão do navegador para o PSOffice e `gh` para o GitHub; nada é guardado. O campo `key` do `manifest.json` é uma chave **pública**, só fixa o ID da extensão |
+| Código de projeto de cliente fica fora | Do GitHub só se leem metadados; nenhum código de cliente no repositório |
+| Tudo roda na máquina; nuvem não é necessária | Extensão, ponte e scripts rodam localmente |
+| Teste só com você mesmo; nenhuma mensagem para outras pessoas | Todas as gravações reais foram na conta do autor, com autorização dele; a extensão não envia e-mail nem mensagem |
+| Entrega: solução, `evidencias/` (prints, saída e log) e README com os 5 itens | Seções 1 a 5 acima; `evidencias/` com GIF, quadros, saída e logs |
+| Bônus: roda sozinha, não duplica e vídeo curto | Lembretes e seleção de atividades por alarme; só preenche dia vazio e a regra do kit gera o mesmo arquivo a cada execução; GIF de demonstração |
+| Reaproveitável com a planilha real | `node kit/verificar-kit.js <pasta> <inicio> <fim>` aceita outros CSVs e períodos sem mudar a lógica |
 
 ## Limitações
 
