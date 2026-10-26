@@ -130,6 +130,34 @@ teste('dia lançado e não enviado pode ser ajustado; enviado não', () => {
   assert.strictEqual(a.dias[3].ajuste, undefined);
 });
 
+teste('revisão lista o que mudaria: horas novas, links que faltam e hora extra desmarcada', () => {
+  const semana = {
+    inicio: '2026-10-18',
+    atividades: [{ atribId: '1' }],
+    celulas: [
+      { atribId: '1', data: '2026-10-19', minutos: 0, temComentario: false, travado: false, aponId: null },
+      { atribId: '1', data: '2026-10-20', minutos: 480, temComentario: true, travado: false, aponId: '20' },
+      { atribId: '1', data: '2026-10-21', minutos: 480, temComentario: true, travado: true, aponId: '21' },
+    ],
+  };
+  const ev = (dia, hora, texto) => ({ ts: `${dia}T${hora}:00-03:00`, fonte: 'pr', repo: 'org/api', texto, url: '' });
+  const evidencias = {
+    '2026-10-19': [ev('2026-10-19', '10:00', 'ABC-1')],
+    '2026-10-20': [ev('2026-10-20', '10:00', 'ABC-2'), ev('2026-10-20', '20:30', 'ABC-3 [PRD]')],
+    '2026-10-21': [ev('2026-10-21', '10:00', 'ABC-4')],
+  };
+  const cfg = { jornadaHoras: 8, jiraBase: 'https://j/browse/' };
+  const a = Regras.analisarSemana({ semana, ausencias: [], feriados: new Set(), evidencias, cfg, hoje: '2026-10-23' });
+  const m = Regras.montarMudancas(a, { '2026-10-20': 'https://j/browse/ABC-2' });
+  assert.deepStrictEqual(m.map((x) => [x.data, x.tipo, x.marcada]), [
+    ['2026-10-19', 'lancar', true],
+    ['2026-10-20', 'links', true],
+    ['2026-10-20', 'extra', false],
+  ]);
+  assert.strictEqual(m[1].depois.comentario, 'https://j/browse/ABC-2\nhttps://j/browse/ABC-3');
+  assert.deepStrictEqual([m[2].antes.horas, m[2].depois.horas], [8, 10.5]);
+});
+
 teste('dia útil passado sem horas e sem GitHub sugere ausência', () => {
   const a = Regras.analisarSemana({ semana: semanaFicticia({}), ausencias: [], feriados: new Set(), evidencias: {}, cfg: {}, hoje: '2026-10-20' });
   assert.strictEqual(a.dias[1].situacao, 'sugerir-ausencia');

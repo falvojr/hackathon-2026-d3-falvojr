@@ -225,6 +225,54 @@
     return { principal, dias };
   }
 
+  /**
+   * O que "Aplicar sugestões" gravaria, para revisar e escolher antes.
+   * `comentarios`: justificativa atual ({ 'AAAA-MM-DD': texto }) dos dias lançados e ainda editáveis.
+   * Hora extra entra desmarcada: é estimativa e só a pessoa sabe se trabalhou.
+   */
+  function montarMudancas(analise, comentarios) {
+    const mudancas = [];
+    const horas = (c) => c.minutos / 60;
+    for (const d of analise.dias) {
+      const base = { data: d.data, nome: d.nome };
+      if (d.situacao === 'sugerir-horas') {
+        mudancas.push(Object.assign({}, base, {
+          id: `${d.data}-lancar`, tipo: 'lancar', celula: d.sugestao.celula, marcada: true,
+          antes: { horas: 0, comentario: '' },
+          depois: { horas: d.sugestao.horas, comentario: d.sugestao.comentario },
+        }));
+      } else if (d.situacao === 'sem-justificativa') {
+        for (const c of d.sugestao.celulas) {
+          mudancas.push(Object.assign({}, base, {
+            id: `${d.data}-${c.atribId}-justificar`, tipo: 'justificar', celula: c, marcada: true,
+            antes: { horas: horas(c), comentario: '' },
+            depois: { horas: horas(c), comentario: d.sugestao.comentario },
+          }));
+        }
+      } else if (d.ajuste) {
+        const c = d.ajuste.celula;
+        const atual = (comentarios && comentarios[d.data]) || '';
+        const faltando = (d.ajuste.comentarioSugerido || '').split('\n').filter((l) => l && !atual.includes(l));
+        if (faltando.length) {
+          mudancas.push(Object.assign({}, base, {
+            id: `${d.data}-links`, tipo: 'links', celula: c, marcada: true,
+            antes: { horas: horas(c), comentario: atual },
+            depois: { horas: horas(c), comentario: [atual.trim(), ...faltando].filter(Boolean).join('\n') },
+          }));
+        }
+        if (d.extra) {
+          mudancas.push(Object.assign({}, base, {
+            id: `${d.data}-extra`, tipo: 'extra', celula: c, marcada: false,
+            nota: `atividade das ${d.extra.primeiro} às ${d.extra.ultimo}${d.extra.prd.length ? ', com deploy/hotfix' : ''}`,
+            antes: { horas: horas(c), comentario: atual },
+            depois: { horas: horas(c) + d.extra.ateHoras, comentario: atual },
+          }));
+        }
+      }
+    }
+    return mudancas;
+  }
+
   // Dias úteis até hoje que ainda pedem ação (sem horas e sem ausência).
   function pendencias(analise) {
     return analise.dias.filter((d) => d.situacao === 'sugerir-horas' || d.situacao === 'sugerir-ausencia');
@@ -236,7 +284,7 @@
     inicioDaSemana, intervalo, ehDiaUtil, diasUteis,
     diasSemLancamento,
     extrairChaves, montarComentario, indicioHoraExtra,
-    atividadePrincipal, analisarSemana, pendencias,
+    atividadePrincipal, analisarSemana, montarMudancas, pendencias,
   };
 
   if (typeof module !== 'undefined' && module.exports) module.exports = Regras;

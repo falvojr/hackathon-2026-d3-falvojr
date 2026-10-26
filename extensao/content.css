@@ -72,3 +72,11 @@
 #assistente-horas .ah-extra .ah-btn { padding: 1px 8px; margin-left: 6px; }
 #assistente-horas .ah-ajuste { display: flex; flex-wrap: wrap; gap: 8px; align-items: flex-start; margin-top: 6px; }
 #assistente-horas .ah-status .ah-link { margin-left: 6px; }
+#assistente-horas .ah-revisao { padding: 10px 14px; border-top: 1px solid #dde6ef; background: #fff; }
+#assistente-horas .ah-rev-titulo { font-weight: 600; margin-bottom: 6px; }
+#assistente-horas .ah-revisao table { width: 100%; border-collapse: collapse; }
+#assistente-horas .ah-revisao th { text-align: left; font-weight: 600; color: #5b6b7c; border-bottom: 1px solid #dde6ef; padding: 4px 6px; }
+#assistente-horas .ah-revisao td { vertical-align: top; border-bottom: 1px solid #eef2f6; padding: 6px; }
+#assistente-horas .ah-rev-dia { white-space: nowrap; font-weight: 600; }
+#assistente-horas .ah-rev-coment { font: 11px/1.4 Consolas, monospace; color: #3b4a5a; margin-top: 2px; word-break: break-all; }
+#assistente-horas .ah-novo { color: #1a7f37; }

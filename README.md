@@ -41,6 +41,7 @@ flowchart LR
 | Esquecer de lançar | Notificação diária (17:30) só quando há dia útil sem horas e sem ausência |
 | Retroativo sem contexto | Para cada dia, sugere 8h e a **justificativa com os links do Jira** tirados de branches, PRs e commits do dia (o formato que já se usa no PSOffice) |
 | Hora extra (deploy em PRD, plantão) | Mostra atividade fora do expediente e itens `[PRD]`/`hotfix`, com botão `+Xh`; nunca soma sozinho |
+| Saber o que a sugestão muda | **Revisar sugestões** lista, por dia, o antes → depois (horas e justificativa, com as linhas novas destacadas) e grava só os itens marcados. Vale também para semana salva e não enviada: completa links do Jira que faltam e oferece a hora extra, desmarcada por ser estimativa. Quando um botão está desligado, o painel diz por quê |
 | Corrigir antes da aprovação | Dia lançado e não enviado ganha **Ajustar** (horas e justificativa); semana enviada e não aprovada ganha **Cancelar envio para ajustar** |
 | Ausência como dia zerado | Dia útil passado sem horas e sem nenhuma atividade vira sugestão de **ausência**, registrada no formulário oficial |
 | Ausência com trabalho no dia | Avisa quando há ausência registrada mas houve atividade no GitHub |
@@ -97,7 +98,7 @@ O GIF do topo, passo a passo, com telas reais do uso (semanas de 04 a 26/10). No
 Como gerar de novo: com o painel carregado, cole `kit/anonimizar-tela.js` no console (F12) e tire os prints; depois `python kit/montar-gif.py evidencias/prints/quadros evidencias/prints/assistente-horas-demo.gif` monta o GIF com as legendas (requer Pillow). O script de máscara não contém dado real: descobre na página o que esconder.
 
 - `evidencias/log-verificacao-kit.txt` e `evidencias/dias_sem_lancamento.csv`: regra do kit **idêntica ao esperado (61 linhas)**; rodar de novo gera o mesmo arquivo.
-- `evidencias/log-testes.txt`: 15 testes passando.
+- `evidencias/log-testes.txt`: 16 testes passando.
 - No PSOffice real (só na conta do autor, com autorização): leitura de semanas, ausências e justificativas; regravação de horas e justificativa conferida; seleção automática das atividades da semana seguinte; envio de uma semana para aprovação. Os formulários de ausência, atividades e envio foram comparados campo a campo com o que o navegador envia.
 
 ## 5. Onde a IA errou

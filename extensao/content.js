@@ -165,6 +165,40 @@
     </div>`;
   }
 
+  const ROTULO_MUDANCA = {
+    lancar: 'Lançar horas e justificativa',
+    justificar: 'Incluir justificativa',
+    links: 'Completar a justificativa com links do Jira',
+    extra: 'Somar possível hora extra',
+  };
+
+  // Justificativa com as linhas novas destacadas em relação ao "antes".
+  function textoComentario(texto, antes) {
+    if (!texto) return '<span class="ah-mudo">(sem justificativa)</span>';
+    return texto.split('\n').map((l) => (antes !== undefined && !antes.includes(l) ? `<span class="ah-novo">+ ${esc(l)}</span>` : esc(l))).join('<br>');
+  }
+
+  // Lista revisável do que "aplicar" gravaria: antes → depois, com seleção por item.
+  function tabelaRevisao(mudancas) {
+    if (!mudancas.length) return '';
+    const linhas = mudancas.map((m) => `
+      <tr>
+        <td><input type="checkbox" data-id="${esc(m.id)}" ${m.marcada ? 'checked' : ''}></td>
+        <td class="ah-rev-dia">${esc(m.nome)}</td>
+        <td>${esc(ROTULO_MUDANCA[m.tipo])}${m.nota ? `<div class="ah-mudo">${esc(m.nota)} · estimativa, confira</div>` : ''}</td>
+        <td><b>${horasBr(m.antes.horas * 60)}h</b><div class="ah-rev-coment">${m.tipo === 'extra' ? '' : textoComentario(m.antes.comentario)}</div></td>
+        <td><b>${horasBr(m.depois.horas * 60)}h</b><div class="ah-rev-coment">${m.tipo === 'extra' ? '' : textoComentario(m.depois.comentario, m.antes.comentario)}</div></td>
+      </tr>`).join('');
+    return `<div class="ah-revisao" hidden>
+      <div class="ah-rev-titulo">O que será gravado no PSOffice (só os itens marcados)</div>
+      <table><thead><tr><th></th><th>Dia</th><th>Mudança</th><th>Antes</th><th>Depois</th></tr></thead><tbody>${linhas}</tbody></table>
+      <div class="ah-acao">
+        <button type="button" class="ah-btn" data-acao="aplicar-selecionadas">Aplicar selecionadas</button>
+        <button type="button" class="ah-btn ah-sec" data-acao="fechar-revisao">Fechar</button>
+      </div>
+    </div>`;
+  }
+
   async function executar(botao, tarefa) {
     const botoes = painel.querySelectorAll('button');
     botoes.forEach((b) => (b.disabled = true));
@@ -196,7 +230,12 @@
       }
       cfg = await aprenderJira(cfg, semana0);
       const res = await Assistente.analisar(cliente, iso, remoto);
-      ctx = Object.assign(res, { tipos: res.ausencias.tipos });
+      // Justificativa atual dos dias lançados e editáveis, para mostrar o "antes" e só sugerir links que faltam.
+      const comentarios = {};
+      await Promise.all(res.analise.dias.filter((d) => d.ajuste).map(async (d) => {
+        comentarios[d.data] = await cliente.lerComentario(d.ajuste.celula).catch(() => '');
+      }));
+      ctx = Object.assign(res, { tipos: res.ausencias.tipos, mudancas: R.montarMudancas(res.analise, comentarios) });
     } catch (e) {
       mensagem(e.name === 'SessaoExpirada' ? 'Sessão do PSOffice expirada: recarregue a página após o login.' : `Erro: ${e.message}`, 'erro');
       return;
@@ -205,12 +244,20 @@
   }
 
   function render(ctx) {
-    const { cfg, semana, analise, evid } = ctx;
+    const { cfg, semana, analise, evid, mudancas } = ctx;
     const principal = semana.atividades.find((a) => a.atribId === analise.principal);
     const pend = R.pendencias(analise);
-    const aplicaveis = analise.dias.filter((d) => d.situacao === 'sugerir-horas' || d.situacao === 'sem-justificativa');
     const abertas = semana.celulas.filter((c) => c.minutos > 0 && !c.travado);
+    const enviada = !abertas.length && semana.celulas.some((c) => c.minutos > 0 && c.travado);
     const avisos = [...(evid.avisos || [])];
+    // Por que os botões do rodapé estão desligados, dito em texto (não só cinza).
+    const motivo = enviada
+      ? `Semana já enviada: nada para revisar ou enviar${semana.podeCancelar ? '. Para ajustar, cancele o envio' : ''}.`
+      : !mudancas.length && !abertas.length
+        ? 'Nada lançado nesta semana ainda.'
+        : !mudancas.length
+          ? 'Sem sugestões: horas e justificativas já batem com as evidências.'
+          : '';
 
     painel.innerHTML = `
       <header>
@@ -222,11 +269,13 @@
       ${avisos.length ? `<div class="ah-avisos">${avisos.map((a) => `<div>${esc(a)}</div>`).join('')}</div>` : ''}
       ${!semana.atividades.length ? '<div class="ah-avisos"><div>A semana está sem atividades. <button type="button" class="ah-btn" data-acao="repetir-atividades">Repetir atividades da semana anterior</button></div></div>' : ''}
       <div class="ah-dias">${analise.dias.map((d) => blocoDia(d, ctx)).join('')}</div>
+      ${tabelaRevisao(mudancas)}
       <footer>
-        <button type="button" class="ah-btn" data-acao="aplicar-tudo" ${aplicaveis.length ? '' : 'disabled'}>Aplicar sugestões de horas e justificativas (${aplicaveis.length})</button>
+        <button type="button" class="ah-btn" data-acao="revisar" ${mudancas.length ? '' : 'disabled'}>Revisar sugestões (${mudancas.length})</button>
         <button type="button" class="ah-btn ah-enviar" data-acao="enviar" ${abertas.length && semana.podeEnviar ? '' : 'disabled'}>Enviar semana para aprovação</button>
         ${semana.podeCancelar ? '<button type="button" class="ah-btn ah-sec" data-acao="cancelar-envio">Cancelar envio para ajustar</button>' : ''}
-        ${pend.length ? `<span class="ah-alerta">Pendente: ${pend.map((d) => esc(d.nome)).join(', ')}</span>` : abertas.length ? '' : '<span class="ah-ok">Nada para enviar</span>'}
+        ${pend.length ? `<span class="ah-alerta">Pendente: ${pend.map((d) => esc(d.nome)).join(', ')}</span>` : ''}
+        ${motivo ? `<span class="ah-mudo">${esc(motivo)}</span>` : ''}
       </footer>`;
 
     painel.onclick = (ev) => {
@@ -331,18 +380,30 @@
         return executar(botao, () => cliente.registrarAusencia({ inicio: dia.data, tipoId, justificativa }));
       }
 
-      if (acao === 'aplicar-tudo') {
-        const resumo = aplicaveis.map((d) => (d.situacao === 'sugerir-horas' ? `${d.nome}: ${horasBr(d.sugestao.horas * 60)}h + justificativa` : `${d.nome}: justificativa`)).join('\n');
-        if (!confirm(`Aplicar estas sugestões?\n\n${resumo}`)) return;
+      if (acao === 'revisar') {
+        const revisao = painel.querySelector('.ah-revisao');
+        revisao.hidden = !revisao.hidden;
+        if (!revisao.hidden) revisao.scrollIntoView({ block: 'nearest' });
+        return;
+      }
+      if (acao === 'fechar-revisao') return (painel.querySelector('.ah-revisao').hidden = true);
+
+      // Grava só o que ficou marcado na revisão, na ordem dos dias.
+      if (acao === 'aplicar-selecionadas') {
+        const marcadas = [...painel.querySelectorAll('.ah-revisao input[type=checkbox]:checked')].map((c) => mudancas.find((m) => m.id === c.dataset.id));
+        if (!marcadas.length) return mensagem('Marque pelo menos uma mudança.', 'erro');
         return executar(botao, async () => {
-          for (const d of aplicaveis) {
-            const bloco = painel.querySelector(`.ah-dia[data-data="${d.data}"]`);
-            const comentario = bloco.querySelector('.ah-coment').value.trim();
-            if (d.situacao === 'sugerir-horas') {
-              const horas = parseFloat(bloco.querySelector('.ah-acao input[type=number]').value);
-              await cliente.lancar(d.sugestao.celula, horas, comentario, semana);
+          for (const m of marcadas) {
+            if (m.tipo === 'lancar') {
+              // Respeita o que a pessoa editou no próprio dia (horas e justificativa).
+              const bloco = painel.querySelector(`.ah-dia[data-data="${m.data}"] .ah-acao`);
+              const horas = bloco ? parseFloat(bloco.querySelector('input[type=number]').value) : m.depois.horas;
+              const comentario = bloco ? bloco.querySelector('.ah-coment').value.trim() : m.depois.comentario;
+              await cliente.lancar(m.celula, horas, comentario, semana);
+            } else if (m.tipo === 'extra') {
+              await cliente.salvarHoras(m.celula, m.depois.horas, semana);
             } else {
-              for (const c of d.sugestao.celulas) await cliente.salvarComentario(c.aponId, comentario);
+              await cliente.salvarComentario(m.celula.aponId, m.depois.comentario);
             }
           }
         });
