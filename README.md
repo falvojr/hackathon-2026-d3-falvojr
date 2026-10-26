@@ -84,12 +84,17 @@ Hoje a fonte de atividade é o GitHub, o que atende quem desenvolve. Para outros
 
 ## 4. Evidências
 
-Prints e GIF do uso real, com nome, projeto, conta, repositórios, títulos e chaves do Jira **mascarados** por `kit/anonimizar-tela.js` (genérico: descobre na página o que esconder, sem conter dado real).
+O GIF do topo, passo a passo, com telas reais do uso (semanas de 04 a 26/10). Nome, projeto, conta, repositórios, títulos e chaves do Jira estão **mascarados**.
 
-| Semana 04–10/10 | Semana 11–17/10 | Semana 11–17/10 (fim) |
-|---|---|---|
-| ![Semana 04 a 10/10](evidencias/prints/03-semana-04-10-out.jpg) | ![Semana 11 a 17/10, evidências de um dia](evidencias/prints/01-semana-11-17-out-evidencias.jpg) | ![Semana 11 a 17/10, hora extra e grade](evidencias/prints/02-semana-11-17-out-hora-extra.jpg) |
-| Dias de 8h e 10h, avisos de hora extra e um dia sem evidência | Evidências de um dia: tipo, repositório e chave do Jira | Hora extra no sábado e a grade do PSOffice |
+| Passo | Tela |
+|---|---|
+| 1. O painel aparece em cima da grade de Horas do PSOffice | ![Painel](evidencias/prints/quadros/painel.png) |
+| 2. Cada dia mostra o que foi feito: PRs, commits e chaves do Jira | ![Evidências de um dia](evidencias/prints/quadros/evidencias.png) |
+| 3. Atividade fora do expediente vira aviso de possível hora extra | ![Hora extra](evidencias/prints/quadros/hora-extra.png) |
+| 4. Semana atual: hoje sem atividade ainda não conta como ausência | ![Hoje](evidencias/prints/quadros/hoje.png) |
+| 5. Semana enviada e não aprovada: cancelar o envio para ajustar | ![Cancelar envio](evidencias/prints/quadros/cancelar-envio.png) |
+
+Como gerar de novo: com o painel carregado, cole `kit/anonimizar-tela.js` no console (F12) e tire os prints; depois `python kit/montar-gif.py evidencias/prints/quadros evidencias/prints/assistente-horas-demo.gif` monta o GIF com as legendas (requer Pillow). O script de máscara não contém dado real: descobre na página o que esconder.
 
 - `evidencias/log-verificacao-kit.txt` e `evidencias/dias_sem_lancamento.csv`: regra do kit **idêntica ao esperado (61 linhas)**; rodar de novo gera o mesmo arquivo.
 - `evidencias/log-testes.txt`: 15 testes passando.
@@ -105,8 +110,9 @@ Prints e GIF do uso real, com nome, projeto, conta, repositórios, títulos e ch
 6. **Leu as telas como UTF-8**; são `windows-1252`.
 7. **Mandou colar o token do `gh` na extensão**, criando cópia de um token de cliente com escrita. Trocado pela ponte local, só leitura.
 8. **Instalou a ponte de dentro do app desktop do Claude** e declarou pronta: o app é empacotado (MSIX) e o Windows escondeu do Chrome o registro e os arquivos. O instalador agora detecta e pede um terminal comum.
-9. **A primeira máscara de prints deixou o sobrenome**: trocou o primeiro nome antes do nome completo. Pego ao revisar o print, antes de salvar; agora troca do mais longo para o mais curto e confere se sobrou dado real.
+9. **A primeira máscara de prints deixou o sobrenome**: trocou o primeiro nome antes do nome completo. Pego ao revisar o print, antes de salvar; agora troca do mais longo para o mais curto e confere se sobrou dado real. Essa conferência pegou um segundo caso: o painel terminava de carregar depois da máscara e trazia o nome do projeto; o script passou a ler o projeto também do cabeçalho do painel.
 10. **Sugeria ausência para o dia de hoje** antes de qualquer atividade. Hoje sem atividade não é pendência.
+11. **O primeiro GIF era pouco claro**: página inteira reduzida, 4 quadros e nada dizendo o que olhar. Refeito em passos legendados, com recortes ampliados e tempo de leitura (`kit/montar-gif.py`).
 
 ## Limitações
 

@@ -21,7 +21,10 @@
   // Projeto/atividade da grade e do cabeçalho do painel, e a conta do GitHub.
   const projetos = [...new Set([...document.querySelectorAll('.ativTitulo')].map((e) => e.textContent.trim()))];
   projetos.forEach((p, i) => trocar(p, `PROJETO_CLIENTE_${String.fromCharCode(65 + i)}`));
+  // O painel pode terminar de carregar depois da grade: lê o projeto também do cabeçalho dele.
   const sub = document.querySelector('#assistente-horas .ah-sub');
+  const doPainel = sub && sub.textContent.match(/Sugestões em (.+?) \//);
+  if (doPainel && !/^PROJETO_CLIENTE_/.test(doPainel[1])) trocar(doPainel[1], `PROJETO_CLIENTE_${String.fromCharCode(65 + projetos.length)}`);
   const conta = sub && sub.textContent.match(/GitHub (\S+)/);
   if (conta) trocar(conta[1], 'dev-exemplo');
 
