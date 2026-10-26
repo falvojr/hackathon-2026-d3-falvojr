@@ -85,7 +85,7 @@ Hoje a fonte de atividade é o GitHub, o que atende quem desenvolve. Para outros
 
 ## 4. Evidências
 
-O GIF do topo, passo a passo, com telas reais do uso (semanas de 04 a 26/10). No passo 4 a linha de domingo (hora extra estimada pela regra anterior, já corrigida) foi ocultada do quadro. Nome, projeto, conta, repositórios, títulos e chaves do Jira estão **mascarados**.
+O GIF do topo, passo a passo, com telas reais do uso (semanas de 04 a 26/10). Os quadros são da evolução da extensão nesses dias: nos passos 1 e 6 o botão ainda se chamava "Aplicar sugestões" (hoje "Revisar sugestões"); nos passos 4 e 5 a linha de domingo foi retirada do quadro porque mostrava a estimativa de hora extra de fim de semana anterior à correção do item 5.12. Nome, projeto, conta, repositórios, títulos e chaves do Jira estão **mascarados**.
 
 | Passo | Tela |
 |---|---|
@@ -115,6 +115,7 @@ Como gerar de novo: com o painel carregado, cole `kit/anonimizar-tela.js` no con
 9. **A primeira máscara de prints deixou o sobrenome**: trocou o primeiro nome antes do nome completo. Pego ao revisar o print, antes de salvar; agora troca do mais longo para o mais curto e confere se sobrou dado real. Essa conferência pegou um segundo caso: o painel terminava de carregar depois da máscara e trazia o nome do projeto; o script passou a ler o projeto também do cabeçalho do painel.
 10. **Sugeria ausência para o dia de hoje** antes de qualquer atividade. Hoje sem atividade não é pendência.
 11. **O primeiro GIF era pouco claro**: página inteira reduzida, 4 quadros e nada dizendo o que olhar. Refeito em passos legendados, com recortes ampliados e tempo de leitura (`kit/montar-gif.py`).
+12. **Estimava hora extra de fim de semana a partir das 18:00**: um único evento às 20:19 de um domingo virava +2,5h. Pego no uso real; fora de dia útil, conta o intervalo da própria atividade.
 
 ## Como a IA foi usada
 
@@ -133,7 +134,7 @@ Ferramentas usadas pela IA: terminal, edição de arquivos, navegador embutido d
 
 | Premissa (slides e kit) | Como foi atendida |
 |---|---|
-| Projeto individual, um repositório `hackathon-2026-d3-<usuário>` | Este repositório |
+| Projeto individual, um repositório `hackathon-2026-d3-<usuário>` | Este repositório, na conta pessoal do autor (alinhado com a organização em vez de `ideen-tech`) |
 | Só dados fictícios; nada de dado de cliente ou de colaborador | A regra é validada com a massa fictícia do kit. As telas do uso real só aparecem **mascaradas** (pessoa, projeto, conta, repositórios, títulos, chaves e links do Jira) |
 | Nenhuma senha, chave ou token real em código, prompt ou tela | Sessão do navegador para o PSOffice e `gh` para o GitHub; nada é guardado. O campo `key` do `manifest.json` é uma chave **pública**, só fixa o ID da extensão |
 | Código de projeto de cliente fica fora | Do GitHub só se leem metadados; nenhum código de cliente no repositório |
