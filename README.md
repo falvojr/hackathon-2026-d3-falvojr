@@ -10,7 +10,7 @@ Quem esquece de lançar horas no PSOffice reconstrói a semana de memória, prec
 
 ## 2. O que eu fiz
 
-Uma extensão do Chrome/Edge que aparece **dentro da tela de Horas do PSOffice**, cruza o que está lançado com a atividade da pessoa no GitHub e transforma a regra do controle em ação: lembra, sugere e preenche, sempre com um clique de confirmação.
+Uma extensão do Chrome/Edge que aparece **dentro da tela de Horas do PSOffice**, cruza o que está lançado com a atividade da pessoa no GitHub e transforma a regra do controle em ação: lembra, sugere e preenche. Horas, justificativas, ausências e envio só são gravados com um clique de confirmação; a única ação automática é repetir as atividades da semana anterior quando a semana começa vazia (dá para desligar nas opções).
 
 ```mermaid
 flowchart LR
@@ -92,7 +92,7 @@ O GIF do topo, passo a passo, com telas reais do uso (semanas de 04 a 26/10). Os
 | 1. O painel aparece em cima da grade de Horas do PSOffice | ![Painel](evidencias/prints/quadros/painel.png) |
 | 2. Cada dia mostra o que foi feito: PRs, commits e chaves do Jira | ![Evidências de um dia](evidencias/prints/quadros/evidencias.png) |
 | 3. Atividade fora do expediente vira aviso de possível hora extra | ![Hora extra](evidencias/prints/quadros/hora-extra.png) |
-| 4. Revisar sugestões: o antes → depois de cada dia, gravando só o que estiver marcado | ![Revisar sugestões](evidencias/prints/quadros/revisar.png) |
+| 4. Revisar sugestões: veja o antes → depois e grave só o que marcar | ![Revisar sugestões](evidencias/prints/quadros/revisar.png) |
 | 5. Semana atual: hoje sem atividade ainda não conta como ausência | ![Hoje](evidencias/prints/quadros/hoje.png) |
 | 6. Semana enviada e não aprovada: cancelar o envio para ajustar | ![Cancelar envio](evidencias/prints/quadros/cancelar-envio.png) |
 
@@ -129,7 +129,7 @@ Todo o desenvolvimento foi feito em par com o **Claude Code** (app desktop, aba 
 | Validação | Rodou testes, a regra contra o esperado do kit e comparou cada formulário com o que o navegador envia; testou no PSOffice real | Autorizou, uma a uma, as gravações reais (atividades, regravação de horas, envio da semana) e conferiu no Chrome (Claude in Chrome) |
 | Evidências | Criou a máscara de dados, capturou prints e montou o GIF | Pediu evidências mais claras, a revisão de sugestões e o repositório público sem dados sensíveis |
 
-Ferramentas usadas pela IA: terminal, edição de arquivos, navegador embutido do app, Claude in Chrome e o `gh` da pessoa. Os erros da IA e as correções estão no item 5.
+Ferramentas usadas pela IA: terminal, edição de arquivos, navegador embutido do app, Claude in Chrome e o `gh` da pessoa. Os erros da IA e as correções estão na seção 5.
 
 ## Premissas do desafio
 
@@ -142,7 +142,7 @@ Ferramentas usadas pela IA: terminal, edição de arquivos, navegador embutido d
 | Tudo roda na máquina; nuvem não é necessária | Extensão, ponte e scripts rodam localmente |
 | Teste só com você mesmo; nenhuma mensagem para outras pessoas | Todas as gravações reais foram na conta do autor, com autorização dele; a extensão não envia e-mail nem mensagem |
 | Entrega: solução, `evidencias/` (prints, saída e log) e README com os 5 itens | Seções 1 a 5 acima; `evidencias/` com GIF, quadros, saída e logs |
-| Bônus: roda sozinha, não duplica e vídeo curto | Lembretes e seleção de atividades por alarme; só preenche dia vazio e a regra do kit gera o mesmo arquivo a cada execução; GIF de demonstração |
+| Bônus: roda sozinha, não duplica e vídeo curto | Lembretes e seleção de atividades por alarme; as sugestões só listam o que ainda falta (aplicar de novo não repete nada) e a regra do kit gera o mesmo arquivo a cada execução; GIF de demonstração |
 | Reaproveitável com a planilha real | `node kit/verificar-kit.js <pasta> <inicio> <fim>` aceita outros CSVs e períodos sem mudar a lógica |
 
 ## Limitações
