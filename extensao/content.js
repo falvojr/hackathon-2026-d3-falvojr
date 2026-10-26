@@ -60,9 +60,10 @@
     if (!x || ['futuro', 'ausencia'].includes(dia.situacao)) return '';
     const prd = x.prd.length ? ` · inclui ${x.prd.map((t) => `<em>${esc(t)}</em>`).join(', ')}` : '';
     const sessoes = x.sessoes > 1 ? `${x.sessoes} sessões` : '1 sessão';
-    const fora = `~${String(x.horas).replace('.', ',')}h fora do expediente em ${sessoes} (${esc(x.primeiro)}–${esc(x.ultimo)})`;
+    const horario = x.primeiro === x.ultimo ? esc(x.primeiro) : `${esc(x.primeiro)}–${esc(x.ultimo)}`;
+    const fora = `~${String(x.horas).replace('.', ',')}h fora do expediente em ${sessoes} (${horario})`;
     // Já lançado o suficiente? Só informa, sem sugerir nada.
-    if (x.coberto) return `<div class="ah-extra ah-coberto">Atividade fora do expediente: ${fora}${prd}. Já coberta pelas ${horasBr(dia.minutos)}h lançadas.</div>`;
+    if (x.coberto) return `<div class="ah-extra ah-coberto">${fora[0].toUpperCase()}${fora.slice(1)}${prd}: já coberto pelas ${horasBr(dia.minutos)}h lançadas.</div>`;
     const botao = dia.situacao === 'sugerir-horas'
       ? ` <button type="button" class="ah-btn ah-sec" data-acao="somar-extra" data-alvo="${x.alvo}">Usar ${String(x.alvo).replace('.', ',')}h</button>`
       : '';

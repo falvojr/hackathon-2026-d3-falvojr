@@ -293,7 +293,7 @@
           const sessoes = d.extra.sessoes > 1 ? `${d.extra.sessoes} sessões` : '1 sessão';
           mudancas.push(Object.assign({}, base, {
             id: `${d.data}-extra`, tipo: 'extra', celula: c, marcada: false,
-            nota: `~${String(d.extra.horas).replace('.', ',')}h fora do expediente em ${sessoes} (${d.extra.primeiro}–${d.extra.ultimo})${d.extra.prd.length ? ', com deploy/hotfix' : ''}`,
+            nota: `~${String(d.extra.horas).replace('.', ',')}h fora do expediente em ${sessoes} (${d.extra.primeiro === d.extra.ultimo ? d.extra.primeiro : `${d.extra.primeiro}–${d.extra.ultimo}`})${d.extra.prd.length ? ', com deploy/hotfix' : ''}`,
             antes: { horas: horas(c), comentario: atual },
             depois: { horas: horas(c) + (d.extra.alvo - d.minutos / 60), comentario: atual },
           }));
