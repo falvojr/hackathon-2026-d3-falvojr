@@ -60,18 +60,15 @@
   function linhaExtra(dia) {
     const x = dia.extra;
     if (!x || ['futuro', 'ausencia'].includes(dia.situacao)) return '';
-    const prd = x.prd.length ? ` · inclui ${x.prd.map((t) => `<em>${esc(t)}</em>`).join(', ')}` : '';
+    // Já coberta pelo lançado: vira uma nota curta na linha de status (ver blocoDia).
+    if (x.coberto) return '';
     const sessoes = x.sessoes > 1 ? `${x.sessoes} sessões` : '1 sessão';
     const horario = x.primeiro === x.ultimo ? esc(x.primeiro) : `${esc(x.primeiro)}–${esc(x.ultimo)}`;
-    const tipo = x.soColaboracao ? ', só revisões/comentários' : '';
-    const fora = `~${String(x.horas).replace('.', ',')}h fora do expediente em ${sessoes} (${horario}${tipo})`;
-    // Já lançado o suficiente? Só informa, sem sugerir nada.
-    if (x.coberto) return `<div class="ah-extra ah-coberto">${fora[0].toUpperCase()}${fora.slice(1)}${prd}: já coberto pelas ${horasBr(dia.minutos)}h lançadas.</div>`;
+    const tipo = x.soColaboracao ? ', só revisões' : x.prd.length ? ', com deploy' : '';
     const botao = dia.situacao === 'sugerir-horas'
       ? ` <button type="button" class="ah-btn ah-sec" data-acao="somar-extra" data-alvo="${x.alvo}">Usar ${String(x.alvo).replace('.', ',')}h</button>`
       : '';
-    const lancado = dia.minutos ? ` Lançado: ${horasBr(dia.minutos)}h.` : '';
-    return `<div class="ah-extra">Possível hora extra: ${fora}${prd}.${lancado}${botao}</div>`;
+    return `<div class="ah-extra">Possível hora extra: ~${String(x.horas).replace('.', ',')}h fora do expediente (${sessoes}, ${horario}${tipo}).${botao}</div>`;
   }
 
   function linhaEvidencias(dia) {
@@ -80,10 +77,10 @@
     const itens = dia.itens
       .map((it) => `<li class="${R.ehAutoria(it) ? '' : 'ah-colab'}"><span class="ah-fonte">${esc(ROTULO[it.fonte] || it.fonte)}</span> ${esc(it.repo.split('/').pop())}: <a href="${esc(it.url)}" target="_blank" rel="noopener">${esc(it.texto)}</a></li>`)
       .join('');
-    const colab = dia.itens.length - dia.autoria;
-    const resumo = colab ? `${dia.autoria} sua(s), ${colab} de colaboração` : `${dia.autoria} sua(s)`;
+    const n = dia.itens.length;
+    const resumo = !dia.autoria ? 'só colaboração' : dia.autoria === n ? (n === 1 ? 'sua' : 'todas suas') : `${dia.autoria} suas`;
     const chaves = dia.chaves.length ? ` · ${dia.chaves.map(esc).join(', ')}` : '';
-    return `<details class="ah-evid"><summary>${dia.itens.length} evidência(s) no GitHub (${resumo})${chaves}</summary><ul>${itens}</ul></details>`;
+    return `<details class="ah-evid"><summary>${n} ${n === 1 ? 'evidência' : 'evidências'} (${resumo})${chaves}</summary><ul>${itens}</ul></details>`;
   }
 
   function opcoesAusencia(tipos) {
@@ -165,6 +162,9 @@
         </div>`
       : '';
     if (dia.ajuste) status += ' <button type="button" class="ah-link" data-acao="mostrar-ajuste">Ajustar</button>';
+    if (dia.extra && dia.extra.coberto && !['futuro', 'ausencia'].includes(dia.situacao)) {
+      status += ` <span class="ah-mudo">· hora extra ~${String(dia.extra.horas).replace('.', ',')}h já coberta</span>`;
+    }
     return `<div class="ah-dia ah-${dia.situacao}" data-data="${dia.data}">
       ${titulo}
       <div class="ah-dia-corpo">
@@ -225,6 +225,15 @@
     }
   }
 
+  // Recolher o painel é preferência de quem usa; guardada só neste navegador.
+  let recolhido = false;
+  try {
+    recolhido = !!(await chrome.storage.local.get('painelRecolhido')).painelRecolhido;
+  } catch (e) {
+    recolhido = false;
+  }
+  painel.classList.toggle('ah-recolhido', recolhido);
+
   async function carregar() {
     painel.innerHTML = `<header><strong>Assistente de horas</strong><span class="ah-msg">Analisando a semana e o GitHub...</span></header>`;
     let ctx;
@@ -277,12 +286,20 @@
           ? 'Sem sugestões: horas e justificativas já batem com as evidências.'
           : '';
 
+    // Resumo de uma linha mostrado com o painel recolhido.
+    const partes = [];
+    if (pend.length) partes.push(`${pend.length} ${pend.length === 1 ? 'dia pendente' : 'dias pendentes'}`);
+    if (mudancas.length) partes.push(`${mudancas.length} ${mudancas.length === 1 ? 'sugestão' : 'sugestões'} para revisar`);
+    const resumoSemana = partes.length ? partes.join(' · ') : enviada ? 'Semana enviada' : 'Semana em dia';
+
     painel.innerHTML = `
       <header>
         <strong>Assistente de horas</strong>
         <span class="ah-sub">${principal ? `Sugestões em ${esc(principal.projeto)} / ${esc(principal.atividade)}` : 'Nenhuma atividade na semana'}${evid.login ? ` · GitHub ${esc(evid.login)}` : ''}</span>
+        <span class="ah-resumo">${esc(resumoSemana)}</span>
         <span class="ah-msg"></span>
         <button type="button" class="ah-link" data-acao="opcoes">Opções</button>
+        <button type="button" class="ah-link" data-acao="recolher">${recolhido ? 'Expandir' : 'Recolher'}</button>
       </header>
       ${avisos.length ? `<div class="ah-avisos">${avisos.map((a) => `<div>${esc(a)}</div>`).join('')}</div>` : ''}
       ${!semana.atividades.length ? '<div class="ah-avisos"><div>A semana está sem atividades. <button type="button" class="ah-btn" data-acao="repetir-atividades">Repetir atividades da semana anterior</button></div></div>' : ''}
@@ -304,6 +321,13 @@
       const dia = bloco && analise.dias.find((d) => d.data === bloco.dataset.data);
 
       if (acao === 'opcoes') return chrome.runtime.sendMessage({ tipo: 'abrirOpcoes' });
+      if (acao === 'recolher') {
+        recolhido = !recolhido;
+        painel.classList.toggle('ah-recolhido', recolhido);
+        botao.textContent = recolhido ? 'Expandir' : 'Recolher';
+        chrome.storage.local.set({ painelRecolhido: recolhido }).catch(() => {});
+        return;
+      }
       if (acao === 'mostrar-ausencia') return (bloco.querySelector('.ah-ausencia').hidden = false);
       if (acao === 'mostrar-horas') return (bloco.querySelector('.ah-horas-extra').hidden = false);
       if (acao === 'somar-extra') {

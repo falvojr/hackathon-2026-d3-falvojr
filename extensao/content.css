@@ -82,3 +82,12 @@
 #assistente-horas .ah-novo { color: #1a7f37; }
 #assistente-horas .ah-extra.ah-coberto { background: #eef2f6; color: #5b6b7c; }
 #assistente-horas .ah-evid li.ah-colab, #assistente-horas .ah-evid li.ah-colab a { color: #98a4b0; }
+/* Painel recolhido: só cabeçalho (com o resumo da semana) e os botões do rodapé. */
+#assistente-horas .ah-resumo { display: none; font-weight: 600; color: #b45309; }
+#assistente-horas.ah-recolhido .ah-resumo { display: inline; }
+#assistente-horas.ah-recolhido .ah-sub,
+#assistente-horas.ah-recolhido .ah-avisos,
+#assistente-horas.ah-recolhido .ah-dias,
+#assistente-horas.ah-recolhido footer .ah-mudo,
+#assistente-horas.ah-recolhido footer .ah-alerta { display: none; }
+#assistente-horas.ah-recolhido header { border-bottom: 0; }
