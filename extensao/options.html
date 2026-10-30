@@ -61,7 +61,7 @@
 <main>
   <header>
     <h1>Assistente de Horas</h1>
-    <p>Lembra, sugere e preenche o seu apontamento no PSOffice a partir da sua atividade no GitHub. Nenhuma senha ou token fica guardado aqui.</p>
+    <p>Sugere e lança suas horas no PSOffice a partir do seu GitHub.</p>
   </header>
 
   <section>
@@ -71,7 +71,7 @@
       <button type="button" class="sec" id="testar" hidden>Verificar de novo</button>
     </div>
     <div id="instalar" class="instalar" hidden>
-      <p class="ajuda">A extensão lê o GitHub pelo <code>gh</code> já logado no seu computador, sem guardar token. Para ligar, rode uma vez na pasta do projeto, num terminal comum, e depois clique em "Verificar de novo":</p>
+      <p class="ajuda">Instale a ponte uma vez, num terminal aberto na pasta do projeto:</p>
       <pre><code>node extensao/ponte/instalar.js --usuario &lt;sua-conta-do-gh&gt;</code></pre>
     </div>
   </section>
@@ -81,13 +81,11 @@
     <div class="campo">
       <label for="jornadaHoras">Jornada diária</label>
       <div class="entre"><input id="jornadaHoras" class="curto" type="number" step="0.25" min="1" max="24"> horas</div>
-      <p class="ajuda">Quanto o assistente sugere para um dia útil com atividade sua no GitHub e sem horas lançadas.</p>
     </div>
     <div class="campo">
-      <span class="rotulo">Horário normal de trabalho</span>
+      <span class="rotulo">Horário de trabalho</span>
       <div class="entre">das <input id="inicioExpediente" type="time"> às <input id="fimExpediente" type="time"></div>
-      <p class="ajuda">Usado só para identificar possível hora extra.</p>
-      <div id="erroHorario" class="erro-campo" hidden>O fim precisa ser depois do início.</div>
+      <div id="erroHorario" class="erro-campo" hidden>O fim deve ser depois do início.</div>
     </div>
     <div class="pratica">
       <strong>Na prática</strong>
@@ -97,51 +95,51 @@
 
   <section>
     <h2>Lembretes</h2>
-    <label class="linha-check">Avisar nos dias úteis às <input id="horaLembrete" type="time"> se faltar lançar horas em algum dia da semana</label>
-    <label class="linha-check">Lembrar de enviar a semana para aprovação na sexta às <input id="horaEnvio" type="time"></label>
-    <p class="ajuda">Os avisos são notificações do Chrome: ele precisa estar aberto no horário. Se ele estiver fechado no horário, o aviso sai quando você abrir o Chrome no mesmo dia.</p>
+    <label class="linha-check">Avisar às <input id="horaLembrete" type="time"> se faltar lançar horas</label>
+    <label class="linha-check">Lembrar de enviar a semana na sexta às <input id="horaEnvio" type="time"></label>
+    <p class="ajuda">Precisa do Chrome aberto.</p>
     <div class="teste">
-      <button type="button" class="sec" id="verificar">Testar lembretes agora</button>
-      <span id="resultadoTeste">Mostra agora os avisos que você receberia (dias pendentes e envio da sexta), sem gravar nada no PSOffice.</span>
+      <button type="button" class="sec" id="verificar">Testar lembretes</button>
+      <span id="resultadoTeste">Não grava nada no PSOffice.</span>
     </div>
   </section>
 
   <section>
     <details>
-      <summary>Avançado <span class="ajuda">os padrões servem para a maioria</span></summary>
+      <summary>Avançado <span class="ajuda">opcional</span></summary>
 
       <h3>Sugestões</h3>
       <div class="campo">
-        <label for="atividadePadrao">Atividade que recebe as sugestões</label>
-        <select id="atividadePadrao"><option value="">Automática (a que tiver mais horas na semana)</option></select>
-        <p class="ajuda" id="ajudaAtividade">Use se você divide a semana entre atividades e quer as sugestões sempre na mesma.</p>
+        <label for="atividadePadrao">Atividade das sugestões</label>
+        <select id="atividadePadrao"><option value="">Automática (a com mais horas na semana)</option></select>
+        <p class="ajuda" id="ajudaAtividade">Para usar sempre a mesma atividade.</p>
       </div>
       <div class="campo">
-        <label for="feriadosExtras">Feriados municipais e estaduais</label>
+        <label for="feriadosExtras">Feriados locais</label>
         <textarea id="feriadosExtras" rows="3" placeholder="2026-08-22"></textarea>
-        <p class="ajuda">Um por linha, no formato AAAA-MM-DD. Esses dias não contam como dia útil: não viram pendência nem sugestão de horas ou ausência, e atividade neles conta como possível hora extra. Os feriados nacionais já vêm automaticamente.</p>
+        <p class="ajuda">Um por linha (AAAA-MM-DD). Os nacionais já estão incluídos.</p>
       </div>
 
       <h3>Justificativa</h3>
       <div class="campo">
         <label for="jiraBase">Endereço do Jira</label>
         <input id="jiraBase" type="text" placeholder="https://empresa.atlassian.net/browse/">
-        <p class="ajuda">Aprendido sozinho de uma justificativa sua já salva. Vazio: a justificativa leva só a chave (ABC-123), sem link.</p>
+        <p class="ajuda">Preenchido sozinho.</p>
       </div>
       <div class="campo">
-        <label for="prefixosJira">Só aceitar chaves destes projetos do Jira</label>
+        <label for="prefixosJira">Projetos do Jira</label>
         <input id="prefixosJira" type="text" placeholder="ABC, XYZ">
-        <p class="ajuda">Separados por vírgula. Evita que siglas parecidas com chave (como UTF-8 ou ISO-9001) entrem na justificativa. Vazio aceita qualquer chave no formato ABC-123.</p>
+        <p class="ajuda">Só aceita chaves destes projetos. Vazio: qualquer chave.</p>
       </div>
-      <label class="linha-check"><input id="justificativaComTitulos" type="checkbox"> Sem chave do Jira no dia, usar títulos de PR/commit (leva texto do repositório do cliente para o PSOffice)</label>
+      <label class="linha-check"><input id="justificativaComTitulos" type="checkbox"> Sem chave do Jira, usar o título do PR ou commit (leva texto do cliente ao PSOffice)</label>
 
       <h3>Automação</h3>
-      <label class="linha-check"><input id="selecionarAtividadesAuto" type="checkbox"> Se a semana começar sem atividades selecionadas no PSOffice, selecionar as mesmas da semana anterior</label>
+      <label class="linha-check"><input id="selecionarAtividadesAuto" type="checkbox"> Repetir as atividades da semana anterior quando a semana começar vazia</label>
     </details>
   </section>
 
   <footer>
-    <span id="salvo">As alterações são salvas automaticamente.</span>
+    <span id="salvo">Salvo automaticamente.</span>
   </footer>
 </main>
 <script src="lib/config.js"></script>

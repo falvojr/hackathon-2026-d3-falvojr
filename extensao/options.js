@@ -29,11 +29,11 @@
     const inicio = $('inicioExpediente').value || '08:00';
     const fim = $('fimExpediente').value || '18:00';
     const itens = [
-      `Dia útil com atividade sua no GitHub e sem horas: sugere <b>${horasBr(jornada)}h</b>, com os links do Jira das demandas em que você é autor.`,
-      'Dia útil que já passou sem horas e sem nenhuma atividade: sugere registrar ausência.',
-      `Atividade antes das <b>${inicio}</b> ou depois das <b>${fim}</b> (ou em fim de semana e feriado): possível hora extra. Um review isolado vale cerca de 0,25h.`,
-      `Entre ${inicio} e ${fim} nada vira hora extra; almoço e pausas não são descontados.`,
-      'A hora extra só é sugerida se faltar hora no que você lançou, e nada é gravado sem você confirmar.',
+      `Dia com atividade e sem horas: sugere <b>${horasBr(jornada)}h</b> e os links do Jira.`,
+      'Dia sem horas e sem atividade: sugere ausência.',
+      `Atividade antes das <b>${inicio}</b>, depois das <b>${fim}</b> ou no fim de semana: possível hora extra.`,
+      'Almoço e pausas não contam.',
+      'Nada é gravado sem você confirmar.',
     ];
     $('pratica').innerHTML = itens.map((t) => `<li>${t}</li>`).join('');
     const invalido = $('fimExpediente').value && $('inicioExpediente').value && $('fimExpediente').value <= $('inicioExpediente').value;
@@ -47,7 +47,7 @@
   }
 
   async function salvar() {
-    if (!atualizarPratica()) return status('Não salvo: o horário de fim precisa ser depois do início.', 'erro');
+    if (!atualizarPratica()) return status('Não salvo: confira o horário de trabalho.', 'erro');
     await Config.salvar({
       jornadaHoras: Number($('jornadaHoras').value) || 8,
       inicioExpediente: $('inicioExpediente').value || '08:00',
@@ -80,7 +80,7 @@
       $('instalar').hidden = true;
       $('testar').hidden = true;
     } catch (e) {
-      $('statusGithub').textContent = /instale a ponte/i.test(e.message) ? 'Ponte local não instalada' : e.message;
+      $('statusGithub').textContent = /instale a ponte/i.test(e.message) ? 'Não conectado' : e.message;
       $('statusGithub').className = 'selo erro';
       $('instalar').hidden = false;
       $('testar').hidden = false;
@@ -93,12 +93,12 @@
     try {
       const lista = await mensagem({ tipo: 'atividades' });
       for (const a of lista) select.add(new Option(a.nome, a.atribId));
-      if (!lista.length) $('ajudaAtividade').textContent = 'Nenhuma atividade encontrada nas últimas semanas do PSOffice.';
+      if (!lista.length) $('ajudaAtividade').textContent = 'Nenhuma atividade encontrada no PSOffice.';
     } catch (e) {
-      $('ajudaAtividade').textContent = 'Abra o PSOffice logado e recarregue esta página para escolher uma atividade.';
+      $('ajudaAtividade').textContent = 'Abra o PSOffice e recarregue esta página para ver suas atividades.';
     }
     if (cfg.atividadePadrao && ![...select.options].some((o) => o.value === cfg.atividadePadrao)) {
-      select.add(new Option(`Atividade ${cfg.atividadePadrao} (salva antes)`, cfg.atividadePadrao));
+      select.add(new Option(`Atividade ${cfg.atividadePadrao}`, cfg.atividadePadrao));
     }
     select.value = cfg.atividadePadrao || '';
   }
@@ -109,17 +109,17 @@
   $('verificar').onclick = async () => {
     const resultado = $('resultadoTeste');
     resultado.className = '';
-    resultado.textContent = 'Conferindo o PSOffice...';
+    resultado.textContent = 'Conferindo...';
     try {
       await salvar();
       const mostradas = await mensagem({ tipo: 'rodarCiclo', forcar: true });
       resultado.className = 'ok';
       resultado.textContent = mostradas.length
-        ? `Notificação mostrada: ${mostradas.join('; ')}.`
-        : 'Nenhum aviso agora: não há dia pendente nem semana para enviar.';
+        ? `Aviso mostrado: ${mostradas.join('; ')}.`
+        : 'Nada pendente agora.';
     } catch (e) {
       resultado.className = 'erro';
-      resultado.textContent = /sess/i.test(e.message) ? 'Não consegui ler o PSOffice: faça login nele e tente de novo.' : e.message;
+      resultado.textContent = /sess/i.test(e.message) ? 'Entre no PSOffice e tente de novo.' : e.message;
     }
   };
 
