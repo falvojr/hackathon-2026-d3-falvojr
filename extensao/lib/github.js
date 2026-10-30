@@ -18,7 +18,9 @@
   }
 
   /**
-   * Retorna { [AAAA-MM-DD]: [{ fonte, repo, texto, url, ts }] } no fuso de São Paulo.
+   * Retorna { [AAAA-MM-DD]: [{ fonte, autoria, repo, texto, url, ts }] } no fuso de São Paulo.
+   * `autoria`: trabalho da própria pessoa (commit, push, branch, PR que ela abriu), o que justifica
+   * as horas; o resto (revisão, comentário, PR de outra pessoa) é colaboração.
    * A API de eventos cobre os ~300 eventos mais recentes (cerca de 1 a 2 semanas);
    * para dias mais antigos a busca de commits e PRs completa o histórico.
    */
@@ -32,7 +34,7 @@
       const chave = `${dia}|${item.fonte}|${item.repo}|${item.texto}`;
       if (vistos.has(chave)) return;
       vistos.add(chave);
-      (porDia[dia] = porDia[dia] || []).push(Object.assign({ ts }, item));
+      (porDia[dia] = porDia[dia] || []).push(Object.assign({ ts, autoria: R.ehAutoria(item) }, item));
     }
 
     // Busca usa datas UTC: amplia um dia para cada lado e filtra pelo dia local.
@@ -45,7 +47,7 @@
       const prs = await chamar(`/search/issues?q=${buscar(`involves:${login} type:pr updated:${de}..${ate}`)}&per_page=100`);
       for (const pr of prs.items) {
         const repo = pr.repository_url.replace(`${API}/repos/`, '');
-        titulos[`${repo}#${pr.number}`] = { titulo: pr.title, url: pr.html_url };
+        titulos[`${repo}#${pr.number}`] = { titulo: pr.title, url: pr.html_url, autor: pr.user && pr.user.login };
         if (pr.user && pr.user.login === login) add(pr.created_at, { fonte: 'pr', repo, texto: pr.title, url: pr.html_url });
       }
     } catch (e) {
@@ -65,7 +67,9 @@
             add(ev.created_at, { fonte: 'branch', repo, texto: p.ref, url: `https://github.com/${repo}` });
           } else if (/^PullRequest(Review|ReviewComment)?Event$/.test(ev.type) && p.pull_request) {
             const pr = titulos[`${repo}#${p.pull_request.number}`];
-            const fonte = ev.type === 'PullRequestEvent' ? 'pr' : 'revisao';
+            // Abrir/fechar o próprio PR é autoria; mexer no PR de outra pessoa (ex.: merge) é colaboração.
+            // Sem saber o autor, fica como colaboração (não entra na justificativa).
+            const fonte = ev.type !== 'PullRequestEvent' ? 'revisao' : pr && pr.autor === login ? 'pr' : 'pr-outro';
             const texto = pr ? pr.titulo : (p.pull_request.head && p.pull_request.head.ref) || `PR #${p.pull_request.number}`;
             add(ev.created_at, { fonte, repo, texto, url: pr ? pr.url : `https://github.com/${repo}/pull/${p.pull_request.number}` });
           } else if (ev.type === 'IssueCommentEvent' && p.issue) {

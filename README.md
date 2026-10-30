@@ -39,8 +39,8 @@ flowchart LR
 | Dor | O que o assistente faz |
 |---|---|
 | Esquecer de lançar | Notificação diária (17:30) só quando há dia útil sem horas e sem ausência |
-| Retroativo sem contexto | Para cada dia, sugere 8h e a **justificativa com os links do Jira** tirados de branches, PRs e commits do dia (o formato que já se usa no PSOffice) |
-| Hora extra (deploy em PRD, plantão) | Estima o tempo fora do expediente por sessões de atividade (um review isolado vale 0,5h) e destaca itens `[PRD]`/`hotfix`; se o lançado já cobre, só informa; nunca grava sozinho |
+| Retroativo sem contexto | Para cada dia, sugere 8h e a **justificativa com os links do Jira** das demandas em que você é autor (seus commits, pushes, branches e PRs que você abriu), no formato que já se usa no PSOffice. Revisões, comentários e PRs de outras pessoas aparecem no painel como colaboração, mas não entram na justificativa |
+| Hora extra (deploy em PRD, plantão) | Estima o tempo fora do expediente por sessões de atividade, com peso menor para colaboração (um review isolado vale 0,25h), e destaca itens `[PRD]`/`hotfix`; se o lançado já cobre, só informa; nunca grava sozinho |
 | Saber o que a sugestão muda | **Revisar sugestões** lista, por dia, o antes → depois (horas e justificativa, com as linhas novas destacadas) e grava só os itens marcados. Vale também para semana salva e não enviada: completa links do Jira que faltam e oferece a hora extra, desmarcada por ser estimativa. Quando um botão está desligado, o painel diz por quê |
 | Corrigir antes da aprovação | Dia lançado e não enviado ganha **Ajustar** (horas e justificativa); semana enviada e não aprovada ganha **Cancelar envio para ajustar** |
 | Ausência como dia zerado | Dia útil passado sem horas e sem nenhuma atividade vira sugestão de **ausência**, registrada no formulário oficial |
@@ -48,7 +48,7 @@ flowchart LR
 | Segunda sem atividades | Repete automaticamente as atividades da semana anterior |
 | Enviar no fim da semana | Lembrete na sexta (16:00) e botão **Enviar semana para aprovação**, com resumo para confirmar |
 
-**Regra de exceção:** a do kit (dia útil sem nenhum lançamento, sem fim de semana e feriado; pendente conta como lançado), mais: ausência registrada não é pendência; o dia de hoje sem atividade ainda não é ausência; dia sem lançamento **com** atividade vira sugestão de horas; **sem** atividade vira sugestão de ausência; atividade fora do expediente (08:00–18:00; em fim de semana e feriado, o dia todo) vira indício de hora extra, agrupada em sessões: eventos até 60 min um do outro formam uma sessão, que vale do primeiro ao último evento mais 30 min, e o total é arredondado em 0,5h. A sugestão compara com o já lançado (jornada + indício; em fim de semana, só o indício) e só aparece se faltar hora, sempre desmarcada.
+**Regra de exceção:** a do kit (dia útil sem nenhum lançamento, sem fim de semana e feriado; pendente conta como lançado), mais: ausência registrada não é pendência; o dia de hoje sem atividade ainda não é ausência; dia sem lançamento **com** atividade vira sugestão de horas; **sem** atividade vira sugestão de ausência; atividade fora do expediente (08:00–18:00; em fim de semana e feriado, o dia todo) vira indício de hora extra, agrupada em sessões: eventos até 60 min um do outro formam uma sessão; sessão com trabalho próprio vale do primeiro ao último evento mais 30 min, e sessão só de colaboração (revisão, comentário) vale metade do intervalo mais 15 min; o total é arredondado em 0,25h. A sugestão compara com o já lançado (jornada + indício; em fim de semana, só o indício) e só aparece se faltar hora, sempre desmarcada.
 
 **Sem senha e sem token na extensão.** O PSOffice é acessado com a sessão já aberta no navegador, reproduzindo as mesmas chamadas das telas (`/api/horas/apontamento`, justificativa, seleção de atividades, ausência, envio e cancelamento). O GitHub é lido por uma **ponte local** que usa o `gh` já logado: o token não sai do cofre do sistema e a ponte só aceita `GET` em `/user`, `/users/<você>/events`, `/search/issues` e `/search/commits`. Para o PSOffice vão só links do Jira; títulos de PR/commit do cliente só com opção ligada. Cada gravação é conferida relendo o PSOffice.
 
@@ -99,7 +99,7 @@ O GIF do topo, passo a passo, com telas reais do uso (semanas de 04 a 26/10). Os
 Como gerar de novo: com o painel carregado, cole `kit/anonimizar-tela.js` no console (F12) e tire os prints; depois `python kit/montar-gif.py evidencias/prints/quadros evidencias/prints/assistente-horas-demo.gif` monta o GIF com as legendas (requer Pillow). O script de máscara não contém dado real: descobre na página o que esconder.
 
 - `evidencias/log-verificacao-kit.txt` e `evidencias/dias_sem_lancamento.csv`: regra do kit **idêntica ao esperado (61 linhas)**; rodar de novo gera o mesmo arquivo.
-- `evidencias/log-testes.txt`: 18 testes passando.
+- `evidencias/log-testes.txt`: 20 testes passando.
 - No PSOffice real (só na conta do autor, com autorização): leitura de semanas, ausências e justificativas; regravação de horas e justificativa conferida; seleção automática das atividades da semana seguinte; envio de uma semana para aprovação. Os formulários de ausência, atividades e envio foram comparados campo a campo com o que o navegador envia.
 
 ## 5. Onde a IA errou
@@ -125,7 +125,7 @@ Todo o desenvolvimento foi feito em par com o **Claude Code** (app desktop, aba 
 | Etapa | O que a IA fez | O que a pessoa decidiu ou validou |
 |---|---|---|
 | Entendimento | Leu o kit e os slides; explorou o PSOffice só lendo (navegador embutido, com o login feito pela pessoa) e mapeou telas, endpoints e formulários | Escolheu a dor (horas não lançadas) e pediu algo usável de verdade, sem mock |
-| Construção | Escreveu a extensão, a ponte local, as regras, os testes e o instalador | Trocou o token na extensão pela ponte com o `gh`, por causa do monitoramento de tokens do cliente; pediu só links do Jira na justificativa |
+| Construção | Escreveu a extensão, a ponte local, as regras, os testes e o instalador | Trocou o token na extensão pela ponte com o `gh`, por causa do monitoramento de tokens do cliente; pediu só links do Jira na justificativa e só das demandas de autoria (revisão e comentário não justificam horas, só pesam pouco na hora extra) |
 | Validação | Rodou testes, a regra contra o esperado do kit e comparou cada formulário com o que o navegador envia; testou no PSOffice real | Autorizou, uma a uma, as gravações reais (atividades, regravação de horas, envio da semana) e conferiu no Chrome (Claude in Chrome) |
 | Evidências | Criou a máscara de dados, capturou prints e montou o GIF | Pediu evidências mais claras, a revisão de sugestões e o repositório público sem dados sensíveis |
 

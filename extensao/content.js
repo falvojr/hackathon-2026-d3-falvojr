@@ -18,7 +18,7 @@
 
   const esc = (s) => String(s == null ? '' : s).replace(/[&<>"']/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' })[c]);
   const horasBr = (min) => (min / 60).toFixed(2).replace('.', ',');
-  const ROTULO = { push: 'push', branch: 'branch', pr: 'PR', revisao: 'revisão', comentario: 'comentário', commit: 'commit' };
+  const ROTULO = { push: 'push', branch: 'branch', pr: 'PR', 'pr-outro': 'PR de outro', revisao: 'revisão', comentario: 'comentário', commit: 'commit' };
 
   function mensagem(texto, tipo) {
     const el = painel.querySelector('.ah-msg');
@@ -61,7 +61,8 @@
     const prd = x.prd.length ? ` · inclui ${x.prd.map((t) => `<em>${esc(t)}</em>`).join(', ')}` : '';
     const sessoes = x.sessoes > 1 ? `${x.sessoes} sessões` : '1 sessão';
     const horario = x.primeiro === x.ultimo ? esc(x.primeiro) : `${esc(x.primeiro)}–${esc(x.ultimo)}`;
-    const fora = `~${String(x.horas).replace('.', ',')}h fora do expediente em ${sessoes} (${horario})`;
+    const tipo = x.soColaboracao ? ', só revisões/comentários' : '';
+    const fora = `~${String(x.horas).replace('.', ',')}h fora do expediente em ${sessoes} (${horario}${tipo})`;
     // Já lançado o suficiente? Só informa, sem sugerir nada.
     if (x.coberto) return `<div class="ah-extra ah-coberto">${fora[0].toUpperCase()}${fora.slice(1)}${prd}: já coberto pelas ${horasBr(dia.minutos)}h lançadas.</div>`;
     const botao = dia.situacao === 'sugerir-horas'
@@ -73,11 +74,14 @@
 
   function linhaEvidencias(dia) {
     if (!dia.itens.length) return '';
+    // Colaboração (revisão, comentário, PR de outra pessoa) aparece mais apagada: não entra na justificativa.
     const itens = dia.itens
-      .map((it) => `<li><span class="ah-fonte">${esc(ROTULO[it.fonte] || it.fonte)}</span> ${esc(it.repo.split('/').pop())}: <a href="${esc(it.url)}" target="_blank" rel="noopener">${esc(it.texto)}</a></li>`)
+      .map((it) => `<li class="${R.ehAutoria(it) ? '' : 'ah-colab'}"><span class="ah-fonte">${esc(ROTULO[it.fonte] || it.fonte)}</span> ${esc(it.repo.split('/').pop())}: <a href="${esc(it.url)}" target="_blank" rel="noopener">${esc(it.texto)}</a></li>`)
       .join('');
+    const colab = dia.itens.length - dia.autoria;
+    const resumo = colab ? `${dia.autoria} sua(s), ${colab} de colaboração` : `${dia.autoria} sua(s)`;
     const chaves = dia.chaves.length ? ` · ${dia.chaves.map(esc).join(', ')}` : '';
-    return `<details class="ah-evid"><summary>${dia.itens.length} evidência(s) no GitHub${chaves}</summary><ul>${itens}</ul></details>`;
+    return `<details class="ah-evid"><summary>${dia.itens.length} evidência(s) no GitHub (${resumo})${chaves}</summary><ul>${itens}</ul></details>`;
   }
 
   function opcoesAusencia(tipos, cfg) {

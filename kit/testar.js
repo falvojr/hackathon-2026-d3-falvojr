@@ -34,9 +34,9 @@ teste('chaves do Jira sem falsos positivos', () => {
 });
 
 teste('comentário só com links do Jira; títulos do GitHub apenas se a opção estiver ligada', () => {
-  const itens = [{ repo: 'org/api', texto: 'ABC-7 corrige o lote' }, { repo: 'org/api', texto: 'feature/ABC-9' }];
+  const itens = [{ fonte: 'commit', repo: 'org/api', texto: 'ABC-7 corrige o lote' }, { fonte: 'push', repo: 'org/api', texto: 'feature/ABC-9' }];
   assert.strictEqual(Regras.montarComentario(itens, { jiraBase: 'https://j/browse/' }), 'https://j/browse/ABC-7\nhttps://j/browse/ABC-9');
-  const semChave = [{ repo: 'org/api', texto: 'ajusta README' }];
+  const semChave = [{ fonte: 'commit', repo: 'org/api', texto: 'ajusta README' }];
   assert.strictEqual(Regras.montarComentario(semChave, {}), '');
   assert.strictEqual(Regras.montarComentario(semChave, { justificativaComTitulos: true }), 'api: ajusta README');
 });
@@ -158,7 +158,7 @@ teste('revisão lista o que mudaria: horas novas, links que faltam e hora extra 
   assert.deepStrictEqual([m[2].antes.horas, m[2].depois.horas], [8, 8.5]);
 });
 
-const evento = (ts) => ({ ts, fonte: 'pr', repo: 'org/api', texto: 'x' });
+const evento = (ts, fonte = 'commit') => ({ ts, fonte, repo: 'org/api', texto: 'x' });
 
 teste('hora extra por sessões: eventos próximos somam, isolados valem meia hora', () => {
   // Um review isolado no domingo: meia hora, não "o dia todo".
@@ -166,12 +166,40 @@ teste('hora extra por sessões: eventos próximos somam, isolados valem meia hor
   // Fim de semana: 14:00 e 17:10 estão longe um do outro, são duas sessões de meia hora.
   const tarde = [evento('2026-10-25T14:00:00-03:00'), evento('2026-10-25T17:10:00-03:00')];
   assert.deepStrictEqual([Regras.indicioHoraExtra(tarde, {}, false).horas, Regras.indicioHoraExtra(tarde, {}, false).sessoes], [1, 2]);
-  // Dia útil: expediente não conta; 19:00-19:40 é uma sessão (40 + 30 min) e 21:30 outra (30 min) = 1h40 -> 1,5h.
+  // Dia útil: o expediente não conta.
   const noite = [evento('2026-10-20T10:00:00-03:00'), evento('2026-10-20T19:00:00-03:00'), evento('2026-10-20T19:40:00-03:00'), evento('2026-10-20T21:30:00-03:00')];
   const x = Regras.indicioHoraExtra(noite, {}, true);
-  assert.deepStrictEqual([x.horas, x.sessoes, x.primeiro, x.ultimo], [1.5, 2, '19:00', '21:30']);
+  // 19:00-19:40 é uma sessão (40 + 30 min) e 21:30 outra (30 min) = 100 min -> 1,75h.
+  assert.deepStrictEqual([x.horas, x.sessoes, x.primeiro, x.ultimo], [1.75, 2, '19:00', '21:30']);
   // Só atividade dentro do expediente: sem indício.
   assert.strictEqual(Regras.indicioHoraExtra([evento('2026-10-20T10:00:00-03:00')], {}, true), null);
+});
+
+teste('justificativa só com o que é da pessoa: revisão, comentário e PR de outro ficam de fora', () => {
+  const itens = [
+    { fonte: 'push', repo: 'org/api', texto: 'feature/ABC-1-lote' },
+    { fonte: 'revisao', repo: 'org/api', texto: 'XYZ-2 PR de colega' },
+    { fonte: 'comentario', repo: 'org/api', texto: 'XYZ-3 discussão' },
+    { fonte: 'pr-outro', repo: 'org/api', texto: 'XYZ-4 merge do PR de colega' },
+    { fonte: 'revisao', autoria: false, repo: 'org/api', texto: 'XYZ-5' },
+  ];
+  assert.strictEqual(Regras.montarComentario(itens, { jiraBase: 'https://j/browse/' }), 'https://j/browse/ABC-1');
+  // Só colaboração no dia: nada a justificar.
+  assert.strictEqual(Regras.montarComentario(itens.slice(1), { jiraBase: 'https://j/browse/' }), '');
+  assert.deepStrictEqual(itens.map(Regras.ehAutoria), [true, false, false, false, false]);
+});
+
+teste('colaboração pesa menos na hora extra: review isolado vale 0,25h', () => {
+  const review = Regras.indicioHoraExtra([evento('2026-10-25T20:19:00-03:00', 'revisao')], {}, false);
+  assert.deepStrictEqual([review.horas, review.soColaboracao], [0.25, true]);
+  // Duas revisões em 40 min: metade do intervalo (20) + 15 = 35 min -> 0,5h; o mesmo com commits daria 70 min -> 1,25h.
+  const duas = [evento('2026-10-20T20:00:00-03:00', 'revisao'), evento('2026-10-20T20:40:00-03:00', 'comentario')];
+  assert.strictEqual(Regras.indicioHoraExtra(duas, {}, true).horas, 0.5);
+  const commits = [evento('2026-10-20T20:00:00-03:00'), evento('2026-10-20T20:40:00-03:00')];
+  assert.strictEqual(Regras.indicioHoraExtra(commits, {}, true).horas, 1.25);
+  // Sessão mista (commit + revisão) conta como trabalho próprio.
+  const mista = [evento('2026-10-20T20:00:00-03:00', 'revisao'), evento('2026-10-20T20:40:00-03:00')];
+  assert.deepStrictEqual([Regras.indicioHoraExtra(mista, {}, true).horas, Regras.indicioHoraExtra(mista, {}, true).soColaboracao], [1.25, false]);
 });
 
 teste('hora extra compara com o já lançado em vez de somar por cima', () => {

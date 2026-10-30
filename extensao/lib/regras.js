@@ -101,10 +101,21 @@
     return chaves;
   }
 
-  // Comentário no mesmo formato que já é usado no PSOffice: um link do Jira por linha.
-  // Sem chave no dia, fica vazio; só usa títulos do GitHub se `justificativaComTitulos` estiver ligado
-  // (títulos de PR/commit são texto do repositório do cliente).
+  // ---------- autoria x colaboração ----------
+
+  // Trabalho da própria pessoa: é o que justifica as horas. Revisão, comentário e PR de outra
+  // pessoa são colaboração: aparecem no painel e pesam menos na hora extra, mas não justificam.
+  const FONTES_AUTORIA = ['commit', 'push', 'branch', 'pr'];
+
+  function ehAutoria(item) {
+    return typeof item.autoria === 'boolean' ? item.autoria : FONTES_AUTORIA.includes(item.fonte);
+  }
+
+  // Comentário no mesmo formato que já é usado no PSOffice: um link do Jira por linha, só das
+  // demandas em que a pessoa é autora. Sem chave no dia, fica vazio; só usa títulos do GitHub se
+  // `justificativaComTitulos` estiver ligado (títulos de PR/commit são texto do repositório do cliente).
   function montarComentario(itens, cfg) {
+    itens = itens.filter(ehAutoria);
     const prefixos = cfg.prefixosJira || [];
     const chaves = [];
     for (const it of itens) {
@@ -132,12 +143,14 @@
   }
 
   const INTERVALO_SESSAO = 60; // eventos até 60 min um do outro são a mesma sessão de trabalho
-  const MINIMO_SESSAO = 30; // cada sessão vale pelo menos meia hora (um review isolado, por exemplo)
+  const MINIMO_SESSAO = 30; // sessão com trabalho próprio: do primeiro ao último evento + 30 min
+  const MINIMO_COLABORACAO = 15; // sessão só de colaboração (review, comentário): metade do intervalo + 15 min
 
   /**
    * Indício de hora extra: atividade no GitHub fora do expediente (fim de semana/feriado: o dia todo).
-   * Os eventos são agrupados em sessões; cada sessão conta do primeiro ao último evento mais meia
-   * hora, e o total é arredondado para 0,5h. Um comentário às 21h vira 0,5h, não "das 18h às 21h".
+   * Os eventos são agrupados em sessões. Sessão com trabalho próprio (commit, push...) vale do primeiro
+   * ao último evento mais 30 min; sessão só de colaboração vale metade do intervalo mais 15 min.
+   * O total é arredondado para 0,25h: um review isolado às 21h vira 0,25h, não "das 18h às 21h".
    * É só um indício, por isso vira aviso e sugestão desmarcada, nunca um valor aplicado sozinho.
    */
   function indicioHoraExtra(itens, cfg, diaUtil) {
@@ -145,24 +158,32 @@
     const fim = minutosDoDia(cfg.fimExpediente || '18:00');
     const inicio = minutosDoDia(cfg.inicioExpediente || '08:00');
     const fora = itens
-      .map((it) => minutosDoDia(horaLocal(it.ts)))
-      .filter((m) => diaUtil === false || m < inicio || m > fim)
-      .sort((a, b) => a - b);
+      .map((it) => ({ m: minutosDoDia(horaLocal(it.ts)), autoria: ehAutoria(it) }))
+      .filter((e) => diaUtil === false || e.m < inicio || e.m > fim)
+      .sort((a, b) => a.m - b.m);
     if (!fora.length) return null;
     const sessoes = [];
-    for (const m of fora) {
+    for (const e of fora) {
       const atual = sessoes[sessoes.length - 1];
-      if (atual && m - atual.fim <= INTERVALO_SESSAO) atual.fim = m;
-      else sessoes.push({ inicio: m, fim: m });
+      if (atual && e.m - atual.fim <= INTERVALO_SESSAO) {
+        atual.fim = e.m;
+        atual.autoria = atual.autoria || e.autoria;
+      } else {
+        sessoes.push({ inicio: e.m, fim: e.m, autoria: e.autoria });
+      }
     }
-    const minutos = sessoes.reduce((s, x) => s + (x.fim - x.inicio) + MINIMO_SESSAO, 0);
+    const minutos = sessoes.reduce(
+      (s, x) => s + (x.autoria ? x.fim - x.inicio + MINIMO_SESSAO : (x.fim - x.inicio) / 2 + MINIMO_COLABORACAO),
+      0
+    );
     const hhmm = (m) => `${String(Math.floor(m / 60)).padStart(2, '0')}:${String(m % 60).padStart(2, '0')}`;
     const prd = itens.filter((it) => RE_PRD.test(it.texto)).map((it) => it.texto);
     return {
-      primeiro: hhmm(fora[0]),
-      ultimo: hhmm(fora[fora.length - 1]),
+      primeiro: hhmm(fora[0].m),
+      ultimo: hhmm(fora[fora.length - 1].m),
       sessoes: sessoes.length,
-      horas: Math.max(0.5, Math.round(minutos / 30) / 2),
+      soColaboracao: !sessoes.some((x) => x.autoria),
+      horas: Math.max(0.25, Math.round(minutos / 15) / 4),
       prd: [...new Set(prd)].slice(0, 3),
     };
   }
@@ -210,7 +231,9 @@
         situacao: 'ok',
         sugestao: null,
       };
-      for (const it of itens) for (const k of extrairChaves(it.texto, cfg.prefixosJira)) if (!dia.chaves.includes(k)) dia.chaves.push(k);
+      // Chaves mostradas no painel: só as das demandas em que a pessoa é autora (as mesmas da justificativa).
+      dia.autoria = itens.filter(ehAutoria).length;
+      for (const it of itens.filter(ehAutoria)) for (const k of extrairChaves(it.texto, cfg.prefixosJira)) if (!dia.chaves.includes(k)) dia.chaves.push(k);
       const util = ehDiaUtil(data, feriados);
       dia.extra = indicioHoraExtra(itens, cfg, util);
       if (dia.extra) {
@@ -293,7 +316,7 @@
           const sessoes = d.extra.sessoes > 1 ? `${d.extra.sessoes} sessões` : '1 sessão';
           mudancas.push(Object.assign({}, base, {
             id: `${d.data}-extra`, tipo: 'extra', celula: c, marcada: false,
-            nota: `~${String(d.extra.horas).replace('.', ',')}h fora do expediente em ${sessoes} (${d.extra.primeiro === d.extra.ultimo ? d.extra.primeiro : `${d.extra.primeiro}–${d.extra.ultimo}`})${d.extra.prd.length ? ', com deploy/hotfix' : ''}`,
+            nota: `~${String(d.extra.horas).replace('.', ',')}h fora do expediente em ${sessoes} (${d.extra.primeiro === d.extra.ultimo ? d.extra.primeiro : `${d.extra.primeiro}–${d.extra.ultimo}`})${d.extra.soColaboracao ? ', só revisões/comentários' : ''}${d.extra.prd.length ? ', com deploy/hotfix' : ''}`,
             antes: { horas: horas(c), comentario: atual },
             depois: { horas: horas(c) + (d.extra.alvo - d.minutos / 60), comentario: atual },
           }));
@@ -313,7 +336,7 @@
     paraDate, deDate, somarDias, diaDaSemana, paraBr, deBr, dataLocal, horaLocal,
     inicioDaSemana, intervalo, ehDiaUtil, diasUteis,
     diasSemLancamento,
-    extrairChaves, montarComentario, indicioHoraExtra, horasComExtra,
+    FONTES_AUTORIA, ehAutoria, extrairChaves, montarComentario, indicioHoraExtra, horasComExtra,
     atividadePrincipal, analisarSemana, montarMudancas, pendencias,
   };
 
