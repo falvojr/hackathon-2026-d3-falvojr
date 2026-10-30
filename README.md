@@ -74,7 +74,7 @@ O primeiro aplica a regra (o mesmo `extensao/lib/regras.js` da extensão) em `da
    ```
 
    Registra só para o seu usuário, sem admin, e termina com `Teste ok`. Para desfazer: `--remover`.
-2. **Extensão**: em `chrome://extensions`, ligue o *Modo do desenvolvedor* e use *Carregar sem compactação* na pasta `extensao/`. As opções abrem e mostram `Ponte ok`.
+2. **Extensão**: em `chrome://extensions`, ligue o *Modo do desenvolvedor* e use *Carregar sem compactação* na pasta `extensao/`. As opções abrem e mostram `Conectado como <sua-conta>`. Os valores padrão já servem; a página explica cada um e resume "na prática" o que o assistente vai fazer. Salva sozinha.
 3. **Uso**: abra *Horas* no PSOffice. O painel aparece acima da grade semanal.
 
 Sem a ponte, a extensão continua funcionando (lembretes, atividades, ausência e envio), só sem as sugestões vindas do GitHub.

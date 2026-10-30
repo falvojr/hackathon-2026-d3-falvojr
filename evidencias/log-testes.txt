@@ -1,4 +1,4 @@
-ok - dias úteis ignoram fim de semana e feriado
+﻿ok - dias úteis ignoram fim de semana e feriado
 ok - semana começa no domingo
 ok - data local usa o fuso de São Paulo
 ok - chaves do Jira sem falsos positivos

@@ -111,6 +111,17 @@ chrome.runtime.onMessage.addListener((msg, _remetente, responder) => {
     }
     if (msg.tipo === 'feriados') return [...(await Config.feriados(msg.anos, await Config.ler()))];
     if (msg.tipo === 'statusPonte') return Assistente.pedirPonte({ tipo: 'usuario' });
+    // Atividades da semana atual (ou da última com atividades) pelo nome, para a página de opções.
+    if (msg.tipo === 'atividades') {
+      const cfg = await Config.ler();
+      const cliente = PSOffice.criarCliente(cfg.psofficeBase);
+      const hoje = R.dataLocal(Date.now());
+      for (let n = 0; n <= 4; n++) {
+        const semana = await cliente.lerSemana(R.somarDias(hoje, -7 * n));
+        if (semana.atividades.length) return semana.atividades.map((a) => ({ atribId: a.atribId, nome: `${a.projeto} / ${a.atividade}` }));
+      }
+      return [];
+    }
     if (msg.tipo === 'abrirOpcoes') return chrome.runtime.openOptionsPage();
     if (msg.tipo === 'rodarCiclo') return ciclo(!!msg.forcar);
     throw new Error(`Mensagem desconhecida: ${msg.tipo}`);
