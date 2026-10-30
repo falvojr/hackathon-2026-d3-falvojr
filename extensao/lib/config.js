@@ -16,7 +16,6 @@
     inicioExpediente: '08:00',
     fimExpediente: '18:00',
     selecionarAtividadesAuto: true,
-    tipoAusencia: '',
     feriadosExtras: [],
   };
 

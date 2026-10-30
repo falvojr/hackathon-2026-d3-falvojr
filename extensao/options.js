@@ -108,9 +108,12 @@
       await salvar();
       const mostradas = await mensagem({ tipo: 'rodarCiclo', forcar: true });
       resultado.className = 'ok';
-      resultado.textContent = mostradas.length
-        ? `Aviso mostrado: ${mostradas.join('; ')}.`
-        : 'Nada pendente agora.';
+      const falhou = mostradas.filter((m) => !m.ok);
+      resultado.textContent = !mostradas.length
+        ? 'Nada pendente agora.'
+        : falhou.length
+          ? 'O Chrome não conseguiu mostrar a notificação. Confira as permissões do Chrome.'
+          : `Enviado: ${mostradas.map((m) => m.titulo).join('; ')}. Não apareceu? Ligue as notificações do Windows.`;
     } catch (e) {
       resultado.className = 'erro';
       resultado.textContent = /sess/i.test(e.message) ? 'Entre no PSOffice e tente de novo.' : e.message;

@@ -38,7 +38,7 @@ flowchart LR
 
 | Dor | O que o assistente faz |
 |---|---|
-| Esquecer de lançar | Notificação diária (17:30) só quando há dia útil sem horas e sem ausência |
+| Esquecer de lançar | Notificação diária (17:30) só quando há dia útil sem horas e sem ausência, e o número de dias pendentes no ícone da extensão (funciona mesmo com as notificações do Windows desligadas) |
 | Retroativo sem contexto | Para cada dia, sugere 8h e a **justificativa com os links do Jira** das demandas em que você é autor (seus commits, pushes, branches e PRs que você abriu), no formato que já se usa no PSOffice. Revisões, comentários e PRs de outras pessoas aparecem no painel como colaboração, mas não entram na justificativa |
 | Hora extra (deploy em PRD, plantão) | Estima o tempo fora do expediente por sessões de atividade, com peso menor para colaboração (um review isolado vale 0,25h), e destaca itens `[PRD]`/`hotfix`; se o lançado já cobre, só informa; nunca grava sozinho |
 | Saber o que a sugestão muda | **Revisar sugestões** lista, por dia, o antes → depois (horas e justificativa, com as linhas novas destacadas) e grava só os itens marcados. Vale também para semana salva e não enviada: completa links do Jira que faltam e oferece a hora extra, desmarcada por ser estimativa. Quando um botão está desligado, o painel diz por quê |

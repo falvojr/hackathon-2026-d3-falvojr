@@ -22,15 +22,24 @@ async function abrirHoras() {
   }
 }
 
+// Devolve se o Chrome aceitou criar a notificação. O Windows ainda pode escondê-la
+// (notificações desligadas ou "Não perturbe"); por isso o ícone também mostra as pendências.
 function notificacao(id, titulo, mensagem) {
-  chrome.notifications.create(`${id}_${Date.now()}`, {
-    type: 'basic',
-    iconUrl: 'icone128.png',
-    title: titulo,
-    message: mensagem,
-    priority: 2,
-    requireInteraction: true,
+  return new Promise((resolve) => {
+    chrome.notifications.create(
+      `${id}_${Date.now()}`,
+      { type: 'basic', iconUrl: 'icone128.png', title: titulo, message: mensagem, priority: 2, requireInteraction: true },
+      () => resolve(!chrome.runtime.lastError)
+    );
   });
+}
+
+// Selo no ícone da extensão: número de dias pendentes ou "↑" quando falta enviar a semana na sexta.
+function marcarIcone(pendentes, faltaEnviar) {
+  const texto = pendentes ? String(pendentes) : faltaEnviar ? '↑' : '';
+  chrome.action.setBadgeText({ text: texto });
+  chrome.action.setBadgeBackgroundColor({ color: pendentes ? '#b45309' : '#1f6fd1' });
+  chrome.action.setTitle({ title: pendentes ? `${pendentes} dia(s) com horas pendentes` : faltaEnviar ? 'Falta enviar a semana' : 'Abrir minhas horas no PSOffice' });
 }
 
 function agendar() {
@@ -53,10 +62,11 @@ async function ciclo(forcar) {
   const estado = forcar ? {} : (await chrome.storage.local.get('estado')).estado || {};
   const cliente = PSOffice.criarCliente(cfg.psofficeBase);
   const mostradas = [];
-  const notificar = (id, titulo, texto) => {
-    notificacao(id, titulo, texto);
-    mostradas.push(titulo);
+  const notificar = async (id, titulo, texto) => {
+    mostradas.push({ titulo, ok: await notificacao(id, titulo, texto) });
   };
+  let pendentes = 0;
+  let faltaEnviar = false;
   try {
     if (!forcar && cfg.selecionarAtividadesAuto && hora >= '07:00' && estado.atividadesSemana !== inicioSemana) {
       const r = await Assistente.garantirAtividades(cliente, hoje);
@@ -64,24 +74,26 @@ async function ciclo(forcar) {
       if (r && r.adicionadas.length) {
         const semana = await cliente.lerSemana(hoje);
         const nomes = semana.atividades.map((a) => `${a.projeto} / ${a.atividade}`).join(', ');
-        notificar('atividades', 'Atividades da semana selecionadas', `Repeti as atividades da semana anterior: ${nomes}.`);
+        await notificar('atividades', 'Atividades da semana selecionadas', `Repeti as atividades da semana anterior: ${nomes}.`);
       }
     }
 
     if (hora >= cfg.horaLembrete && estado.lembrete !== hoje) {
       const { analise } = await Assistente.analisar(cliente, hoje);
-      const pendentes = R.pendencias(analise);
+      const dias = R.pendencias(analise);
+      pendentes = dias.length;
       estado.lembrete = hoje;
-      if (pendentes.length) {
-        notificar('horas', 'Horas pendentes no PSOffice', `${pendentes.map((d) => d.nome).join(', ')}: clique para revisar as sugestões e lançar.`);
+      if (dias.length) {
+        await notificar('horas', 'Horas pendentes no PSOffice', `${dias.map((d) => d.nome).join(', ')}: clique para revisar as sugestões e lançar.`);
       }
     }
 
     if (dow === 5 && hora >= cfg.horaEnvio && estado.envio !== inicioSemana) {
       const semana = await cliente.lerSemana(hoje);
       estado.envio = inicioSemana;
-      if (semana.celulas.some((c) => c.minutos > 0 && !c.travado)) {
-        notificar('envio', 'Enviar a semana para aprovação', 'Sua semana ainda não foi enviada. Clique para revisar e enviar.');
+      faltaEnviar = semana.celulas.some((c) => c.minutos > 0 && !c.travado);
+      if (faltaEnviar) {
+        await notificar('envio', 'Enviar a semana para aprovação', 'Sua semana ainda não foi enviada. Clique para revisar e enviar.');
       }
     }
   } catch (e) {
@@ -89,13 +101,14 @@ async function ciclo(forcar) {
       // Sem sessão não dá para conferir: lembra do mesmo jeito, uma vez por dia, no horário do lembrete.
       if (hora >= cfg.horaLembrete && estado.lembrete !== hoje) {
         estado.lembrete = hoje;
-        notificar('sessao', 'Lembre de lançar suas horas', 'Não consegui conferir o PSOffice (sessão expirada). Clique para abrir e revisar a semana.');
+        await notificar('sessao', 'Lembre de lançar suas horas', 'Não consegui conferir o PSOffice (sessão expirada). Clique para abrir e revisar a semana.');
       }
     } else {
       console.error('[assistente de horas]', e);
       if (forcar) throw e;
     }
   }
+  if (estado.lembrete === hoje || forcar) marcarIcone(pendentes, faltaEnviar);
   if (!forcar) await chrome.storage.local.set({ estado });
   return mostradas;
 }
@@ -119,6 +132,8 @@ chrome.runtime.onMessage.addListener((msg, _remetente, responder) => {
       return Assistente.evidencias(cfg, msg.inicio, msg.fim);
     }
     if (msg.tipo === 'feriados') return [...(await Config.feriados(msg.anos, await Config.ler()))];
+    // O painel atualiza o selo do ícone sempre que analisa a semana.
+    if (msg.tipo === 'pendencias') return marcarIcone(msg.dias, msg.faltaEnviar);
     if (msg.tipo === 'statusPonte') return Assistente.pedirPonte({ tipo: 'usuario' });
     // Atividades da semana atual (ou da última com atividades) pelo nome, para a página de opções.
     if (msg.tipo === 'atividades') {

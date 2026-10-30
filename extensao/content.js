@@ -86,8 +86,9 @@
     return `<details class="ah-evid"><summary>${dia.itens.length} evidência(s) no GitHub (${resumo})${chaves}</summary><ul>${itens}</ul></details>`;
   }
 
-  function opcoesAusencia(tipos, cfg) {
-    const padrao = cfg.tipoAusencia || (tipos.find((t) => /PJ.*Aus/i.test(t.nome)) || tipos[0] || {}).id;
+  function opcoesAusencia(tipos) {
+    // Pré-seleciona "PJ - Ausência" (o mais comum); a pessoa troca na lista se for outro tipo.
+    const padrao = (tipos.find((t) => /PJ.*Aus/i.test(t.nome)) || tipos[0] || {}).id;
     return tipos.map((t) => `<option value="${esc(t.id)}" ${t.id === padrao ? 'selected' : ''}>${esc(t.nome)}</option>`).join('');
   }
 
@@ -139,7 +140,7 @@
     }
     const formAusencia = dia.situacao === 'sugerir-horas' || dia.situacao === 'sugerir-ausencia'
       ? `<div class="ah-ausencia" ${dia.situacao === 'sugerir-horas' ? 'hidden' : ''}>
-          <select class="ah-tipo">${opcoesAusencia(tipos, cfg)}</select>
+          <select class="ah-tipo">${opcoesAusencia(tipos)}</select>
           <input class="ah-just" type="text" placeholder="Justificativa da ausência (obrigatória)">
           <button type="button" class="ah-btn" data-acao="ausencia">Registrar ausência</button>
         </div>`
@@ -262,6 +263,11 @@
     const abertas = semana.celulas.filter((c) => c.minutos > 0 && !c.travado);
     const enviada = !abertas.length && semana.celulas.some((c) => c.minutos > 0 && c.travado);
     const avisos = [...(evid.avisos || [])];
+    // Semana atual: o selo do ícone da extensão mostra quantos dias faltam (funciona mesmo sem notificações do Windows).
+    const hoje = R.dataLocal(Date.now());
+    if (semana.inicio === R.inicioDaSemana(hoje)) {
+      chrome.runtime.sendMessage({ tipo: 'pendencias', dias: pend.length, faltaEnviar: R.diaDaSemana(hoje) === 5 && abertas.length > 0 });
+    }
     // Por que os botões do rodapé estão desligados, dito em texto (não só cinza).
     const motivo = enviada
       ? `Semana já enviada: nada para revisar ou enviar${semana.podeCancelar ? '. Para ajustar, cancele o envio' : ''}.`

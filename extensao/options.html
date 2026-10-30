@@ -30,6 +30,8 @@
     .regras td:first-child { width: 58%; }
     .regras .grupo td { padding-top: 14px; font-size: 12px; font-weight: 600; text-transform: uppercase; letter-spacing: .04em; color: var(--mudo); border-bottom: 1px solid var(--borda); }
     .regras .grupo:first-child td { padding-top: 0; }
+    .regras td { height: 46px; }
+    .regras .grupo td { height: auto; }
     .regras .nw { white-space: nowrap; }
     .regras td:last-child { padding-right: 0; }
     .regras tr:last-child td { border-bottom: 0; }
@@ -40,7 +42,9 @@
     input[type=text], input[type=number], input[type=time], textarea, select {
       width: 100%; height: 32px; padding: 4px 8px; border: 1px solid #c9d6e3; border-radius: 4px; font: inherit; background: #fff;
     }
-    .regras input { display: inline-block; vertical-align: middle; margin: 0 2px; }
+    /* Frase com campos: texto e caixas centralizados na mesma linha. */
+    .regras .frase { display: inline-flex; align-items: center; gap: 6px; flex-wrap: wrap; }
+    .regras input { margin: 0; }
     .regras input[type=number] { width: 62px; }
     .regras input[type=time] { width: 104px; }
     textarea { height: auto; min-height: 60px; }
@@ -78,7 +82,7 @@
       /* Tela estreita: cada regra empilha (situação em cima, ação embaixo). */
       .regras thead { display: none; }
       .regras tr, .regras td { display: block; width: auto !important; }
-      .regras td { padding: 0 0 2px; border-bottom: 0; }
+      .regras td { padding: 0 0 2px; border-bottom: 0; height: auto; }
       .regras tr:not(.grupo) { padding: 8px 0; border-bottom: 1px solid var(--linha); }
       .regras .grupo td { padding-top: 14px; }
       .regras .nw { white-space: normal; }
@@ -109,16 +113,15 @@
 
   <section>
     <table class="regras">
-      <thead><tr><th>Quando</th><th>O assistente</th></tr></thead>
       <tbody>
         <tr class="grupo"><td colspan="2">Lançamentos</td></tr>
-        <tr><td>O dia tem atividade no GitHub e nenhuma hora lançada</td><td class="faz nw">Sugere <input id="jornadaHoras" type="number" step="0.25" min="1" max="24" aria-label="Horas sugeridas por dia"> h e os links do Jira</td></tr>
+        <tr><td>O dia tem atividade no GitHub e nenhuma hora lançada</td><td class="faz"><span class="frase">Sugere <input id="jornadaHoras" type="number" step="0.25" min="1" max="24" aria-label="Horas sugeridas por dia"> h e os links do Jira</span></td></tr>
         <tr><td>Um dia útil passou sem atividade e sem horas</td><td class="faz">Sugere registrar ausência</td></tr>
-        <tr><td class="nw">Há atividade antes das <input id="inicioExpediente" type="time" aria-label="Início"> ou depois das <input id="fimExpediente" type="time" aria-label="Fim"></td><td class="faz">Avisa possível hora extra</td></tr>
+        <tr><td><span class="frase">Há atividade antes das <input id="inicioExpediente" type="time" aria-label="Início"> ou depois das <input id="fimExpediente" type="time" aria-label="Fim"></span></td><td class="faz">Avisa possível hora extra</td></tr>
         <tr><td>Há atividade no fim de semana ou feriado</td><td class="faz">Avisa possível hora extra</td></tr>
         <tr class="grupo"><td colspan="2">Lembretes <span style="text-transform:none;letter-spacing:0;font-weight:400">· precisam do Chrome aberto</span></td></tr>
-        <tr><td class="nw">Todo dia útil às <input id="horaLembrete" type="time" aria-label="Horário do lembrete diário"></td><td class="faz">Avisa se faltar lançar horas</td></tr>
-        <tr><td class="nw">Toda sexta às <input id="horaEnvio" type="time" aria-label="Horário do lembrete de envio"></td><td class="faz">Lembra de enviar a semana</td></tr>
+        <tr><td><span class="frase">Todo dia útil às <input id="horaLembrete" type="time" aria-label="Horário do lembrete diário"></span></td><td class="faz">Avisa se faltar lançar horas</td></tr>
+        <tr><td><span class="frase">Toda sexta às <input id="horaEnvio" type="time" aria-label="Horário do lembrete de envio"></span></td><td class="faz">Lembra de enviar a semana</td></tr>
       </tbody>
     </table>
     <div id="erroHorario" class="erro-campo" hidden>O segundo horário deve ser depois do primeiro.</div>
