@@ -91,3 +91,10 @@
 #assistente-horas.ah-recolhido footer .ah-mudo,
 #assistente-horas.ah-recolhido footer .ah-alerta { display: none; }
 #assistente-horas.ah-recolhido header { border-bottom: 0; }
+/* Recolhido em uma linha: cabeçalho e botões lado a lado; botões desligados somem. */
+#assistente-horas.ah-recolhido { display: flex; align-items: center; flex-wrap: wrap; }
+#assistente-horas.ah-recolhido header { flex: 1 1 auto; order: 1; }
+#assistente-horas.ah-recolhido footer { order: 2; border-top: 0; padding-left: 0; }
+#assistente-horas.ah-recolhido footer .ah-btn:disabled { display: none; }
+#assistente-horas.ah-recolhido footer:not(:has(.ah-btn:not(:disabled))) { display: none; }
+#assistente-horas.ah-recolhido .ah-revisao { order: 3; flex-basis: 100%; }
