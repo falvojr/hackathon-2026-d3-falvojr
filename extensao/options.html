@@ -45,6 +45,8 @@
     /* Frase com campos: texto e caixas centralizados na mesma linha. */
     .regras .frase { display: inline-flex; align-items: center; gap: 6px; flex-wrap: wrap; }
     .regras input { margin: 0; }
+    /* Mesma largura para os textos antes dos horários dos lembretes: as caixas ficam alinhadas. */
+    .regras .prefixo { min-width: 7.5em; }
     .regras input[type=number] { width: 62px; }
     .regras input[type=time] { width: 104px; }
     textarea { height: auto; min-height: 60px; }
@@ -120,8 +122,8 @@
         <tr><td><span class="frase">Há atividade antes das <input id="inicioExpediente" type="time" aria-label="Início"> ou depois das <input id="fimExpediente" type="time" aria-label="Fim"></span></td><td class="faz">Avisa possível hora extra</td></tr>
         <tr><td>Há atividade no fim de semana ou feriado</td><td class="faz">Avisa possível hora extra</td></tr>
         <tr class="grupo"><td colspan="2">Lembretes <span style="text-transform:none;letter-spacing:0;font-weight:400">· precisam do Chrome aberto</span></td></tr>
-        <tr><td><span class="frase">Todo dia útil às <input id="horaLembrete" type="time" aria-label="Horário do lembrete diário"></span></td><td class="faz">Avisa se faltar lançar horas</td></tr>
-        <tr><td><span class="frase">Toda sexta às <input id="horaEnvio" type="time" aria-label="Horário do lembrete de envio"></span></td><td class="faz">Lembra de enviar a semana</td></tr>
+        <tr><td><span class="frase"><span class="prefixo">Todo dia útil às</span> <input id="horaLembrete" type="time" aria-label="Horário do lembrete diário"></span></td><td class="faz">Avisa se faltar lançar horas</td></tr>
+        <tr><td><span class="frase"><span class="prefixo">Toda sexta às</span> <input id="horaEnvio" type="time" aria-label="Horário do lembrete de envio"></span></td><td class="faz">Lembra de enviar a semana</td></tr>
       </tbody>
     </table>
     <div id="erroHorario" class="erro-campo" hidden>O segundo horário deve ser depois do primeiro.</div>
