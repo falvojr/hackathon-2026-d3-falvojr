@@ -22,7 +22,7 @@ async function abrirHoras() {
   }
 }
 
-function notificar(id, titulo, mensagem) {
+function notificacao(id, titulo, mensagem) {
   chrome.notifications.create(`${id}_${Date.now()}`, {
     type: 'basic',
     iconUrl: 'icone128.png',
@@ -38,20 +38,27 @@ function agendar() {
 }
 
 // Roda a cada 10 minutos; cada aviso sai no máximo uma vez por dia (ou por semana).
-// `forcar` ignora horário e dia da semana (botão "verificar agora" das opções).
+// `forcar` é o "Testar lembretes agora" das opções: ignora horário e dia da semana, não grava nada
+// no PSOffice (sem seleção automática de atividades) e não mexe no controle dos avisos reais do dia.
+// Devolve os títulos das notificações mostradas.
 async function ciclo(forcar) {
   const cfg = await Config.ler();
   const agora = Date.now();
   const hoje = R.dataLocal(agora);
   const hora = forcar ? '23:59' : R.horaLocal(agora);
   const dow = forcar ? 5 : R.diaDaSemana(hoje);
-  if (dow === 0 || dow === 6) return;
+  if (dow === 0 || dow === 6) return [];
 
   const inicioSemana = R.inicioDaSemana(hoje);
-  const estado = (await chrome.storage.local.get('estado')).estado || {};
+  const estado = forcar ? {} : (await chrome.storage.local.get('estado')).estado || {};
   const cliente = PSOffice.criarCliente(cfg.psofficeBase);
+  const mostradas = [];
+  const notificar = (id, titulo, texto) => {
+    notificacao(id, titulo, texto);
+    mostradas.push(titulo);
+  };
   try {
-    if (cfg.selecionarAtividadesAuto && hora >= '07:00' && estado.atividadesSemana !== inicioSemana) {
+    if (!forcar && cfg.selecionarAtividadesAuto && hora >= '07:00' && estado.atividadesSemana !== inicioSemana) {
       const r = await Assistente.garantirAtividades(cliente, hoje);
       estado.atividadesSemana = inicioSemana;
       if (r && r.adicionadas.length) {
@@ -86,9 +93,11 @@ async function ciclo(forcar) {
       }
     } else {
       console.error('[assistente de horas]', e);
+      if (forcar) throw e;
     }
   }
-  await chrome.storage.local.set({ estado });
+  if (!forcar) await chrome.storage.local.set({ estado });
+  return mostradas;
 }
 
 chrome.runtime.onInstalled.addListener(async (detalhes) => {

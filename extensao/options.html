@@ -13,6 +13,8 @@
     header p { color: var(--mudo); margin: 0; }
     section { background: #fff; border: 1px solid var(--borda); border-radius: 8px; padding: 18px 20px; margin-bottom: 14px; }
     h2 { font-size: 15px; margin: 0 0 12px; }
+    h3 { font-size: 13px; text-transform: uppercase; letter-spacing: .04em; color: var(--mudo); margin: 20px 0 8px; }
+    h3:first-of-type { margin-top: 14px; }
     .campo { margin-top: 14px; }
     .campo:first-of-type { margin-top: 0; }
     .campo > label, .rotulo { display: block; font-weight: 600; margin-bottom: 4px; }
@@ -40,12 +42,16 @@
     .pratica strong { display: block; margin-bottom: 4px; }
     .pratica ul { margin: 0; padding-left: 18px; }
     .pratica li { margin: 2px 0; }
+    .teste { display: flex; align-items: center; gap: 10px; flex-wrap: wrap; margin-top: 14px; }
+    #resultadoTeste { color: var(--mudo); }
+    #resultadoTeste.ok { color: var(--ok); } #resultadoTeste.erro { color: var(--erro); }
     details > summary { cursor: pointer; font-weight: 600; font-size: 15px; }
-    details[open] > summary { margin-bottom: 12px; }
+    details > summary .ajuda { font-weight: 400; display: inline; margin-left: 6px; }
+    details[open] > summary { margin-bottom: 4px; }
     button { background: var(--azul); color: #fff; border: 1px solid var(--azul); border-radius: 4px; padding: 6px 14px; font: inherit; cursor: pointer; }
     button.sec { background: #fff; color: var(--azul); }
     .erro-campo { color: var(--erro); font-size: 12.5px; margin-top: 4px; }
-    footer { display: flex; align-items: center; gap: 12px; flex-wrap: wrap; padding: 4px 2px 24px; }
+    footer { padding: 4px 2px 24px; }
     #salvo { color: var(--mudo); }
     #salvo.ok { color: var(--ok); }
     #salvo.erro { color: var(--erro); }
@@ -62,10 +68,10 @@
     <h2>Conexão com o GitHub</h2>
     <div class="status">
       <span id="statusGithub" class="selo">Verificando...</span>
-      <button type="button" class="sec" id="testar">Verificar de novo</button>
+      <button type="button" class="sec" id="testar" hidden>Verificar de novo</button>
     </div>
     <div id="instalar" class="instalar" hidden>
-      <p class="ajuda">A extensão lê o GitHub pelo <code>gh</code> já logado no seu computador, sem guardar token. Para ligar, rode uma vez na pasta do projeto, num terminal comum:</p>
+      <p class="ajuda">A extensão lê o GitHub pelo <code>gh</code> já logado no seu computador, sem guardar token. Para ligar, rode uma vez na pasta do projeto, num terminal comum, e depois clique em "Verificar de novo":</p>
       <pre><code>node extensao/ponte/instalar.js --usuario &lt;sua-conta-do-gh&gt;</code></pre>
     </div>
   </section>
@@ -75,12 +81,12 @@
     <div class="campo">
       <label for="jornadaHoras">Jornada diária</label>
       <div class="entre"><input id="jornadaHoras" class="curto" type="number" step="0.25" min="1" max="24"> horas</div>
-      <p class="ajuda">Quanto o assistente sugere para um dia útil em que você trabalhou e ainda não lançou horas.</p>
+      <p class="ajuda">Quanto o assistente sugere para um dia útil com atividade sua no GitHub e sem horas lançadas.</p>
     </div>
     <div class="campo">
       <span class="rotulo">Horário normal de trabalho</span>
       <div class="entre">das <input id="inicioExpediente" type="time"> às <input id="fimExpediente" type="time"></div>
-      <p class="ajuda">Serve só para identificar possível hora extra. Almoço e pausas não entram na conta.</p>
+      <p class="ajuda">Usado só para identificar possível hora extra.</p>
       <div id="erroHorario" class="erro-campo" hidden>O fim precisa ser depois do início.</div>
     </div>
     <div class="pratica">
@@ -91,30 +97,20 @@
 
   <section>
     <h2>Lembretes</h2>
-    <label class="linha-check">Avisar nos dias úteis às <input id="horaLembrete" type="time"> se faltar lançar horas</label>
+    <label class="linha-check">Avisar nos dias úteis às <input id="horaLembrete" type="time"> se faltar lançar horas em algum dia da semana</label>
     <label class="linha-check">Lembrar de enviar a semana para aprovação na sexta às <input id="horaEnvio" type="time"></label>
-    <label class="linha-check"><input id="selecionarAtividadesAuto" type="checkbox"> Se a semana começar sem atividades, repetir as da semana anterior</label>
-  </section>
-
-  <section>
-    <h2>Justificativa (links do Jira)</h2>
-    <p class="ajuda" style="margin:0 0 12px">A justificativa sugerida é um link do Jira por linha, só das demandas em que você é autor (seus commits, pushes, branches e PRs). Revisões e comentários não entram.</p>
-    <div class="campo">
-      <label for="jiraBase">Endereço do Jira</label>
-      <input id="jiraBase" type="text" placeholder="https://empresa.atlassian.net/browse/">
-      <p class="ajuda">Preenchido sozinho a partir de uma justificativa sua. Só mude se estiver errado.</p>
+    <p class="ajuda">Os avisos são notificações do Chrome: ele precisa estar aberto no horário. Se ele estiver fechado no horário, o aviso sai quando você abrir o Chrome no mesmo dia.</p>
+    <div class="teste">
+      <button type="button" class="sec" id="verificar">Testar lembretes agora</button>
+      <span id="resultadoTeste">Mostra agora os avisos que você receberia (dias pendentes e envio da sexta), sem gravar nada no PSOffice.</span>
     </div>
-    <div class="campo">
-      <label for="prefixosJira">Só aceitar chaves destes projetos</label>
-      <input id="prefixosJira" type="text" placeholder="ABC, XYZ">
-      <p class="ajuda">Separados por vírgula. Evita confundir siglas como UTF-8 com chaves do Jira. Vazio aceita qualquer chave no formato ABC-123.</p>
-    </div>
-    <label class="linha-check"><input id="justificativaComTitulos" type="checkbox"> Sem chave do Jira no dia, usar títulos de PR/commit (leva texto do repositório do cliente para o PSOffice)</label>
   </section>
 
   <section>
     <details>
-      <summary>Avançado</summary>
+      <summary>Avançado <span class="ajuda">os padrões servem para a maioria</span></summary>
+
+      <h3>Sugestões</h3>
       <div class="campo">
         <label for="atividadePadrao">Atividade que recebe as sugestões</label>
         <select id="atividadePadrao"><option value="">Automática (a que tiver mais horas na semana)</option></select>
@@ -123,18 +119,29 @@
       <div class="campo">
         <label for="feriadosExtras">Feriados municipais e estaduais</label>
         <textarea id="feriadosExtras" rows="3" placeholder="2026-08-22"></textarea>
-        <p class="ajuda">Um por linha, no formato AAAA-MM-DD. Os nacionais já vêm automaticamente.</p>
+        <p class="ajuda">Um por linha, no formato AAAA-MM-DD. Esses dias não contam como dia útil: não viram pendência nem sugestão de horas ou ausência, e atividade neles conta como possível hora extra. Os feriados nacionais já vêm automaticamente.</p>
+      </div>
+
+      <h3>Justificativa</h3>
+      <div class="campo">
+        <label for="jiraBase">Endereço do Jira</label>
+        <input id="jiraBase" type="text" placeholder="https://empresa.atlassian.net/browse/">
+        <p class="ajuda">Aprendido sozinho de uma justificativa sua já salva. Vazio: a justificativa leva só a chave (ABC-123), sem link.</p>
       </div>
       <div class="campo">
-        <label for="psofficeBase">Endereço do PSOffice</label>
-        <input id="psofficeBase" type="text">
+        <label for="prefixosJira">Só aceitar chaves destes projetos do Jira</label>
+        <input id="prefixosJira" type="text" placeholder="ABC, XYZ">
+        <p class="ajuda">Separados por vírgula. Evita que siglas parecidas com chave (como UTF-8 ou ISO-9001) entrem na justificativa. Vazio aceita qualquer chave no formato ABC-123.</p>
       </div>
+      <label class="linha-check"><input id="justificativaComTitulos" type="checkbox"> Sem chave do Jira no dia, usar títulos de PR/commit (leva texto do repositório do cliente para o PSOffice)</label>
+
+      <h3>Automação</h3>
+      <label class="linha-check"><input id="selecionarAtividadesAuto" type="checkbox"> Se a semana começar sem atividades selecionadas no PSOffice, selecionar as mesmas da semana anterior</label>
     </details>
   </section>
 
   <footer>
     <span id="salvo">As alterações são salvas automaticamente.</span>
-    <button type="button" class="sec" id="verificar">Testar lembretes agora</button>
   </footer>
 </main>
 <script src="lib/config.js"></script>

@@ -14,7 +14,6 @@
   $('prefixosJira').value = cfg.prefixosJira.join(', ');
   $('justificativaComTitulos').checked = cfg.justificativaComTitulos;
   $('feriadosExtras').value = cfg.feriadosExtras.join('\n');
-  $('psofficeBase').value = cfg.psofficeBase;
 
   function mensagem(msg) {
     return new Promise((resolve, reject) => {
@@ -30,10 +29,11 @@
     const inicio = $('inicioExpediente').value || '08:00';
     const fim = $('fimExpediente').value || '18:00';
     const itens = [
-      `Dia útil em que você trabalhou e não lançou horas: sugere <b>${horasBr(jornada)}h</b>.`,
-      `Atividade no GitHub antes das <b>${inicio}</b> ou depois das <b>${fim}</b>: aviso de possível hora extra (um review isolado vale cerca de 0,25h).`,
-      `Atividade entre ${inicio} e ${fim}: nunca vira hora extra; almoço e pausas não são descontados.`,
-      'Fim de semana e feriado: toda atividade conta como possível hora extra.',
+      `Dia útil com atividade sua no GitHub e sem horas: sugere <b>${horasBr(jornada)}h</b>, com os links do Jira das demandas em que você é autor.`,
+      'Dia útil que já passou sem horas e sem nenhuma atividade: sugere registrar ausência.',
+      `Atividade antes das <b>${inicio}</b> ou depois das <b>${fim}</b> (ou em fim de semana e feriado): possível hora extra. Um review isolado vale cerca de 0,25h.`,
+      `Entre ${inicio} e ${fim} nada vira hora extra; almoço e pausas não são descontados.`,
+      'A hora extra só é sugerida se faltar hora no que você lançou, e nada é gravado sem você confirmar.',
     ];
     $('pratica').innerHTML = itens.map((t) => `<li>${t}</li>`).join('');
     const invalido = $('fimExpediente').value && $('inicioExpediente').value && $('fimExpediente').value <= $('inicioExpediente').value;
@@ -60,7 +60,6 @@
       justificativaComTitulos: $('justificativaComTitulos').checked,
       atividadePadrao: $('atividadePadrao').value,
       feriadosExtras: $('feriadosExtras').value.split(/\s+/).filter((s) => /^\d{4}-\d{2}-\d{2}$/.test(s)),
-      psofficeBase: $('psofficeBase').value.trim().replace(/\/+$/, ''),
     });
     status(`Salvo às ${new Date().toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' })}.`, 'ok');
   }
@@ -79,10 +78,12 @@
       $('statusGithub').textContent = `Conectado como ${login}`;
       $('statusGithub').className = 'selo ok';
       $('instalar').hidden = true;
+      $('testar').hidden = true;
     } catch (e) {
       $('statusGithub').textContent = /instale a ponte/i.test(e.message) ? 'Ponte local não instalada' : e.message;
       $('statusGithub').className = 'selo erro';
       $('instalar').hidden = false;
+      $('testar').hidden = false;
     }
   }
 
@@ -104,15 +105,21 @@
 
   $('testar').onclick = verificarPonte;
 
-  // Roda os lembretes já, sem esperar o horário (útil para conferir se as notificações aparecem).
+  // Mostra agora os avisos que sairiam (sem gravar no PSOffice nem mexer nos avisos reais do dia).
   $('verificar').onclick = async () => {
+    const resultado = $('resultadoTeste');
+    resultado.className = '';
+    resultado.textContent = 'Conferindo o PSOffice...';
     try {
       await salvar();
-      await chrome.storage.local.remove('estado');
-      await mensagem({ tipo: 'rodarCiclo', forcar: true });
-      status('Lembretes testados. Se faltar algo na semana, uma notificação aparece.', 'ok');
+      const mostradas = await mensagem({ tipo: 'rodarCiclo', forcar: true });
+      resultado.className = 'ok';
+      resultado.textContent = mostradas.length
+        ? `Notificação mostrada: ${mostradas.join('; ')}.`
+        : 'Nenhum aviso agora: não há dia pendente nem semana para enviar.';
     } catch (e) {
-      status(e.message, 'erro');
+      resultado.className = 'erro';
+      resultado.textContent = /sess/i.test(e.message) ? 'Não consegui ler o PSOffice: faça login nele e tente de novo.' : e.message;
     }
   };
 

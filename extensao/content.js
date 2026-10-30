@@ -7,6 +7,8 @@
   const R = Regras;
   const base = `${location.origin}/${location.pathname.split('/')[1]}`;
   const cliente = PSOffice.criarCliente(base);
+  // O endereço do PSOffice é aprendido da página aberta (os lembretes usam o mesmo); ninguém precisa digitar.
+  Config.ler().then((c) => c.psofficeBase !== base && Config.salvar({ psofficeBase: base }));
   const dtRef = new URLSearchParams(location.search).get('dtRef') || (document.getElementById('dataReferencia') || {}).value;
   const iso = dtRef && /^\d{2}\/\d{2}\/\d{4}$/.test(dtRef) ? R.deBr(dtRef) : R.dataLocal(Date.now());
 
