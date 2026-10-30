@@ -6,141 +6,176 @@
   <style>
     :root { --azul: #1f6fd1; --texto: #1d2733; --mudo: #5b6b7c; --borda: #dde6ef; --fundo: #f5f7fa; --ok: #1a7f37; --erro: #b42318; }
     * { box-sizing: border-box; }
-    body { font: 14px/1.5 -apple-system, "Segoe UI", Roboto, Arial, sans-serif; color: var(--texto); background: var(--fundo); margin: 0; padding: 32px 16px; }
-    main { max-width: 680px; margin: 0 auto; }
-    header { margin-bottom: 16px; }
-    h1 { font-size: 22px; margin: 0 0 4px; }
+    body { font: 14px/1.5 -apple-system, "Segoe UI", Roboto, Arial, sans-serif; color: var(--texto); background: var(--fundo); margin: 0; padding: 32px 20px; }
+    main { max-width: 1000px; margin: 0 auto; }
+
+    header { display: flex; justify-content: space-between; align-items: flex-start; gap: 16px; margin-bottom: 18px; }
+    h1 { font-size: 22px; margin: 0 0 2px; }
     header p { color: var(--mudo); margin: 0; }
-    section { background: #fff; border: 1px solid var(--borda); border-radius: 8px; padding: 18px 20px; margin-bottom: 14px; }
+    .estado { text-align: right; }
+    #salvo { display: block; color: var(--mudo); font-size: 12.5px; margin-top: 4px; }
+    #salvo.ok { color: var(--ok); } #salvo.erro { color: var(--erro); }
+
+    .grade { display: grid; grid-template-columns: 3fr 2fr; gap: 14px; align-items: stretch; }
+    .coluna { align-content: start; }
+    .coluna { display: grid; gap: 14px; }
+    section { background: #fff; border: 1px solid var(--borda); border-radius: 8px; padding: 18px 20px; }
+    .largura-toda { margin-top: 14px; }
     h2 { font-size: 15px; margin: 0 0 12px; }
-    h3 { font-size: 13px; text-transform: uppercase; letter-spacing: .04em; color: var(--mudo); margin: 20px 0 8px; }
-    h3:first-of-type { margin-top: 14px; }
-    .campo { margin-top: 14px; }
-    .campo:first-of-type { margin-top: 0; }
+    h3 { font-size: 12.5px; text-transform: uppercase; letter-spacing: .04em; color: var(--mudo); margin: 0 0 10px; }
+
+    .lado-a-lado { display: flex; gap: 28px; flex-wrap: wrap; }
     .campo > label, .rotulo { display: block; font-weight: 600; margin-bottom: 4px; }
+    .campo + .campo { margin-top: 14px; }
+    .lado-a-lado .campo + .campo { margin-top: 0; }
     .ajuda { color: var(--mudo); font-size: 12.5px; margin: 4px 0 0; }
     input[type=text], input[type=number], input[type=time], textarea, select {
       width: 100%; height: 34px; padding: 6px 8px; border: 1px solid #c9d6e3; border-radius: 4px; font: inherit; background: #fff;
     }
     textarea { height: auto; min-height: 64px; }
-    .curto { max-width: 120px; }
     .entre { display: flex; align-items: center; gap: 8px; }
-    .entre input { width: 120px; }
-    .linha-check { display: flex; gap: 10px; align-items: center; margin-top: 10px; }
+    .entre input[type=number] { width: 72px; }
+    .entre input[type=time] { width: 112px; }
+    .linha-check { display: flex; gap: 10px; align-items: center; }
+    .linha-check + .linha-check { margin-top: 10px; }
     .linha-check input[type=checkbox] { width: 16px; height: 16px; margin: 0; flex: none; }
-    .linha-check input[type=time] { width: 110px; flex: none; }
-    .status { display: flex; align-items: center; gap: 10px; flex-wrap: wrap; }
-    .selo { display: inline-flex; align-items: center; gap: 6px; font-weight: 600; }
-    .selo::before { content: ""; width: 9px; height: 9px; border-radius: 50%; background: #c9d6e3; }
-    .selo.ok { color: var(--ok); } .selo.ok::before { background: var(--ok); }
-    .selo.erro { color: var(--erro); } .selo.erro::before { background: var(--erro); }
-    .instalar { margin-top: 10px; }
+    .linha-check input[type=time] { width: 112px; flex: none; }
+    .rodape-secao { display: flex; align-items: center; justify-content: space-between; gap: 10px; flex-wrap: wrap; margin-top: 14px; padding-top: 12px; border-top: 1px solid #eef2f6; }
+    .rodape-secao .ajuda { margin: 0; }
+    .teste { display: flex; align-items: center; gap: 10px; }
+    #resultadoTeste { color: var(--mudo); font-size: 12.5px; }
+    #resultadoTeste.ok { color: var(--ok); } #resultadoTeste.erro { color: var(--erro); }
+    .erro-campo { color: var(--erro); font-size: 12.5px; margin-top: 6px; }
+
+    .selo { display: inline-flex; align-items: center; gap: 6px; font-weight: 600; padding: 4px 10px; border-radius: 999px; background: #eef2f6; white-space: nowrap; }
+    .selo::before { content: ""; width: 8px; height: 8px; border-radius: 50%; background: #9aa8b6; }
+    .selo.ok { color: var(--ok); background: #e8f5ec; } .selo.ok::before { background: var(--ok); }
+    .selo.erro { color: var(--erro); background: #fdecea; } .selo.erro::before { background: var(--erro); }
+    .conectar { margin-bottom: 14px; border-color: #f3c9c4; }
+    .conectar .entre { justify-content: space-between; }
     pre { background: #eef2f6; padding: 8px 10px; border-radius: 4px; overflow-x: auto; margin: 6px 0 0; font-size: 12.5px; }
     code { background: #eef2f6; padding: 1px 4px; border-radius: 3px; font-size: 12.5px; }
     pre code { padding: 0; }
-    .pratica { background: #f0f6fd; border: 1px solid #cfe0f5; border-radius: 6px; padding: 10px 12px; margin-top: 14px; }
-    .pratica strong { display: block; margin-bottom: 4px; }
+
+    .pratica { background: #f0f6fd; border-color: #cfe0f5; }
     .pratica ul { margin: 0; padding-left: 18px; }
-    .pratica li { margin: 2px 0; }
-    .teste { display: flex; align-items: center; gap: 10px; flex-wrap: wrap; margin-top: 14px; }
-    #resultadoTeste { color: var(--mudo); }
-    #resultadoTeste.ok { color: var(--ok); } #resultadoTeste.erro { color: var(--erro); }
+    .pratica li + li { margin-top: 6px; }
+
     details > summary { cursor: pointer; font-weight: 600; font-size: 15px; }
     details > summary .ajuda { font-weight: 400; display: inline; margin-left: 6px; }
-    details[open] > summary { margin-bottom: 4px; }
-    button { background: var(--azul); color: #fff; border: 1px solid var(--azul); border-radius: 4px; padding: 6px 14px; font: inherit; cursor: pointer; }
+    details[open] > summary { margin-bottom: 16px; }
+    .avancado { display: grid; grid-template-columns: 1fr 1fr; gap: 24px 28px; }
+    .avancado .inteira { grid-column: 1 / -1; }
+
+    button { background: var(--azul); color: #fff; border: 1px solid var(--azul); border-radius: 4px; padding: 6px 14px; font: inherit; cursor: pointer; white-space: nowrap; }
     button.sec { background: #fff; color: var(--azul); }
-    .erro-campo { color: var(--erro); font-size: 12.5px; margin-top: 4px; }
-    footer { padding: 4px 2px 24px; }
-    #salvo { color: var(--mudo); }
-    #salvo.ok { color: var(--ok); }
-    #salvo.erro { color: var(--erro); }
+
+    @media (max-width: 760px) {
+      header { flex-direction: column; }
+      .estado { text-align: left; }
+      .grade, .avancado { grid-template-columns: 1fr; }
+    }
   </style>
 </head>
 <body>
 <main>
   <header>
-    <h1>Assistente de Horas</h1>
-    <p>Sugere e lança suas horas no PSOffice a partir do seu GitHub.</p>
+    <div>
+      <h1>Assistente de Horas</h1>
+      <p>Sugere e lança suas horas no PSOffice a partir do seu GitHub.</p>
+    </div>
+    <div class="estado">
+      <span id="statusGithub" class="selo">Verificando GitHub...</span>
+      <span id="salvo">Salvo automaticamente.</span>
+    </div>
   </header>
 
-  <section>
-    <h2>Conexão com o GitHub</h2>
-    <div class="status">
-      <span id="statusGithub" class="selo">Verificando...</span>
-      <button type="button" class="sec" id="testar" hidden>Verificar de novo</button>
+  <section id="instalar" class="conectar" hidden>
+    <div class="entre">
+      <h2 style="margin:0">Conectar ao GitHub</h2>
+      <button type="button" class="sec" id="testar">Verificar de novo</button>
     </div>
-    <div id="instalar" class="instalar" hidden>
-      <p class="ajuda">Instale a ponte uma vez, num terminal aberto na pasta do projeto:</p>
-      <pre><code>node extensao/ponte/instalar.js --usuario &lt;sua-conta-do-gh&gt;</code></pre>
-    </div>
+    <p class="ajuda">Instale a ponte uma vez, num terminal aberto na pasta do projeto:</p>
+    <pre><code>node extensao/ponte/instalar.js --usuario &lt;sua-conta-do-gh&gt;</code></pre>
   </section>
 
-  <section>
-    <h2>Sua rotina</h2>
-    <div class="campo">
-      <label for="jornadaHoras">Jornada diária</label>
-      <div class="entre"><input id="jornadaHoras" class="curto" type="number" step="0.25" min="1" max="24"> horas</div>
+  <div class="grade">
+    <div class="coluna">
+      <section>
+        <h2>Sua rotina</h2>
+        <div class="lado-a-lado">
+          <div class="campo">
+            <label for="jornadaHoras">Jornada diária</label>
+            <div class="entre"><input id="jornadaHoras" type="number" step="0.25" min="1" max="24"> horas</div>
+          </div>
+          <div class="campo">
+            <span class="rotulo">Horário de trabalho</span>
+            <div class="entre">das <input id="inicioExpediente" type="time"> às <input id="fimExpediente" type="time"></div>
+          </div>
+        </div>
+        <div id="erroHorario" class="erro-campo" hidden>O fim deve ser depois do início.</div>
+      </section>
+
+      <section>
+        <h2>Lembretes</h2>
+        <label class="linha-check">Avisar às <input id="horaLembrete" type="time"> se faltar lançar horas</label>
+        <label class="linha-check">Lembrar de enviar a semana na sexta às <input id="horaEnvio" type="time"></label>
+        <div class="rodape-secao">
+          <p class="ajuda">Precisa do Chrome aberto.</p>
+          <div class="teste">
+            <span id="resultadoTeste">Não grava nada no PSOffice.</span>
+            <button type="button" class="sec" id="verificar">Testar lembretes</button>
+          </div>
+        </div>
+      </section>
     </div>
-    <div class="campo">
-      <span class="rotulo">Horário de trabalho</span>
-      <div class="entre">das <input id="inicioExpediente" type="time"> às <input id="fimExpediente" type="time"></div>
-      <div id="erroHorario" class="erro-campo" hidden>O fim deve ser depois do início.</div>
-    </div>
-    <div class="pratica">
-      <strong>Na prática</strong>
+
+    <section class="pratica">
+      <h2>Na prática</h2>
       <ul id="pratica"></ul>
-    </div>
-  </section>
+    </section>
+  </div>
 
-  <section>
-    <h2>Lembretes</h2>
-    <label class="linha-check">Avisar às <input id="horaLembrete" type="time"> se faltar lançar horas</label>
-    <label class="linha-check">Lembrar de enviar a semana na sexta às <input id="horaEnvio" type="time"></label>
-    <p class="ajuda">Precisa do Chrome aberto.</p>
-    <div class="teste">
-      <button type="button" class="sec" id="verificar">Testar lembretes</button>
-      <span id="resultadoTeste">Não grava nada no PSOffice.</span>
-    </div>
-  </section>
-
-  <section>
+  <section class="largura-toda">
     <details>
       <summary>Avançado <span class="ajuda">opcional</span></summary>
+      <div class="avancado">
+        <div>
+          <h3>Sugestões</h3>
+          <div class="campo">
+            <label for="atividadePadrao">Atividade das sugestões</label>
+            <select id="atividadePadrao"><option value="">Automática (a com mais horas na semana)</option></select>
+            <p class="ajuda" id="ajudaAtividade">Para usar sempre a mesma atividade.</p>
+          </div>
+          <div class="campo">
+            <label for="feriadosExtras">Feriados locais</label>
+            <textarea id="feriadosExtras" rows="3" placeholder="2026-08-22"></textarea>
+            <p class="ajuda">Um por linha (AAAA-MM-DD). Os nacionais já estão incluídos.</p>
+          </div>
+        </div>
 
-      <h3>Sugestões</h3>
-      <div class="campo">
-        <label for="atividadePadrao">Atividade das sugestões</label>
-        <select id="atividadePadrao"><option value="">Automática (a com mais horas na semana)</option></select>
-        <p class="ajuda" id="ajudaAtividade">Para usar sempre a mesma atividade.</p>
-      </div>
-      <div class="campo">
-        <label for="feriadosExtras">Feriados locais</label>
-        <textarea id="feriadosExtras" rows="3" placeholder="2026-08-22"></textarea>
-        <p class="ajuda">Um por linha (AAAA-MM-DD). Os nacionais já estão incluídos.</p>
-      </div>
+        <div>
+          <h3>Justificativa</h3>
+          <div class="campo">
+            <label for="jiraBase">Endereço do Jira</label>
+            <input id="jiraBase" type="text" placeholder="https://empresa.atlassian.net/browse/">
+            <p class="ajuda">Preenchido sozinho.</p>
+          </div>
+          <div class="campo">
+            <label for="prefixosJira">Projetos do Jira</label>
+            <input id="prefixosJira" type="text" placeholder="ABC, XYZ">
+            <p class="ajuda">Só aceita chaves destes projetos. Vazio: qualquer chave.</p>
+          </div>
+          <label class="linha-check" style="margin-top:12px"><input id="justificativaComTitulos" type="checkbox"> Sem chave do Jira, usar o título do PR ou commit (leva texto do cliente ao PSOffice)</label>
+        </div>
 
-      <h3>Justificativa</h3>
-      <div class="campo">
-        <label for="jiraBase">Endereço do Jira</label>
-        <input id="jiraBase" type="text" placeholder="https://empresa.atlassian.net/browse/">
-        <p class="ajuda">Preenchido sozinho.</p>
+        <div class="inteira">
+          <h3>Automação</h3>
+          <label class="linha-check"><input id="selecionarAtividadesAuto" type="checkbox"> Repetir as atividades da semana anterior quando a semana começar vazia</label>
+        </div>
       </div>
-      <div class="campo">
-        <label for="prefixosJira">Projetos do Jira</label>
-        <input id="prefixosJira" type="text" placeholder="ABC, XYZ">
-        <p class="ajuda">Só aceita chaves destes projetos. Vazio: qualquer chave.</p>
-      </div>
-      <label class="linha-check"><input id="justificativaComTitulos" type="checkbox"> Sem chave do Jira, usar o título do PR ou commit (leva texto do cliente ao PSOffice)</label>
-
-      <h3>Automação</h3>
-      <label class="linha-check"><input id="selecionarAtividadesAuto" type="checkbox"> Repetir as atividades da semana anterior quando a semana começar vazia</label>
     </details>
   </section>
-
-  <footer>
-    <span id="salvo">Salvo automaticamente.</span>
-  </footer>
 </main>
 <script src="lib/config.js"></script>
 <script src="options.js"></script>
