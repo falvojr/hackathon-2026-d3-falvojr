@@ -4,8 +4,9 @@
   <meta charset="utf-8">
   <title>Assistente de Horas · Opções</title>
   <style>
-    :root { --azul: #1f6fd1; --texto: #1d2733; --mudo: #5b6b7c; --borda: #dde6ef; --fundo: #f5f7fa; --ok: #1a7f37; --erro: #b42318; }
+    :root { --azul: #1f6fd1; --texto: #1d2733; --mudo: #5b6b7c; --borda: #dde6ef; --linha: #eef2f6; --fundo: #f5f7fa; --ok: #1a7f37; --erro: #b42318; }
     * { box-sizing: border-box; }
+    [hidden] { display: none !important; }
     body { font: 14px/1.5 -apple-system, "Segoe UI", Roboto, Arial, sans-serif; color: var(--texto); background: var(--fundo); margin: 0; padding: 32px 20px; }
     main { max-width: 1000px; margin: 0 auto; }
 
@@ -17,66 +18,70 @@
     #salvo.ok { color: var(--ok); } #salvo.erro { color: var(--erro); }
 
     .grade { display: grid; grid-template-columns: 3fr 2fr; gap: 14px; align-items: stretch; }
-    .coluna { align-content: start; }
-    .coluna { display: grid; gap: 14px; }
-    section { background: #fff; border: 1px solid var(--borda); border-radius: 8px; padding: 18px 20px; }
-    .largura-toda { margin-top: 14px; }
-    h2 { font-size: 15px; margin: 0 0 12px; }
+    section { background: #fff; border: 1px solid var(--borda); border-radius: 8px; padding: 18px 20px; display: flex; flex-direction: column; }
+    .largura-toda { margin-top: 14px; display: block; }
+    h2 { font-size: 15px; margin: 0 0 10px; }
     h3 { font-size: 12.5px; text-transform: uppercase; letter-spacing: .04em; color: var(--mudo); margin: 0 0 10px; }
 
-    .lado-a-lado { display: flex; gap: 14px 28px; flex-wrap: wrap; }
-    .campo > label, .rotulo { display: block; font-weight: 600; margin-bottom: 4px; }
-    .campo + .campo { margin-top: 14px; }
-    .lado-a-lado .campo + .campo { margin-top: 0; }
+    /* Regras: cada linha é "quando" → "o assistente", com o valor editável dentro da frase. */
+    .regras { width: 100%; border-collapse: collapse; }
+    .regras th { text-align: left; font-size: 12px; font-weight: 600; color: var(--mudo); padding: 0 10px 6px 0; border-bottom: 1px solid var(--borda); }
+    .regras td { padding: 8px 10px 8px 0; border-bottom: 1px solid var(--linha); vertical-align: middle; }
+    .regras td:first-child { width: 58%; }
+    .regras .grupo td { padding-top: 14px; font-size: 12px; font-weight: 600; text-transform: uppercase; letter-spacing: .04em; color: var(--mudo); border-bottom: 1px solid var(--borda); }
+    .regras .grupo:first-child td { padding-top: 0; }
+    .regras .nw { white-space: nowrap; }
+    .regras td:last-child { padding-right: 0; }
+    .regras tr:last-child td { border-bottom: 0; }
+    .regras .faz { font-weight: 600; }
+    .rodape { margin-top: auto; padding-top: 12px; display: flex; align-items: center; justify-content: space-between; gap: 10px; flex-wrap: wrap; }
+
     .ajuda { color: var(--mudo); font-size: 12.5px; margin: 4px 0 0; }
     input[type=text], input[type=number], input[type=time], textarea, select {
-      width: 100%; height: 34px; padding: 6px 8px; border: 1px solid #c9d6e3; border-radius: 4px; font: inherit; background: #fff;
+      width: 100%; height: 32px; padding: 4px 8px; border: 1px solid #c9d6e3; border-radius: 4px; font: inherit; background: #fff;
     }
-    textarea { height: auto; min-height: 64px; }
-    .entre { display: flex; align-items: center; gap: 8px; }
-    .entre input[type=number] { width: 72px; }
-    .entre input[type=time] { width: 112px; }
+    .regras input { display: inline-block; vertical-align: middle; margin: 0 2px; }
+    .regras input[type=number] { width: 62px; }
+    .regras input[type=time] { width: 104px; }
+    textarea { height: auto; min-height: 60px; }
+    .campo > label { display: block; font-weight: 600; margin-bottom: 4px; }
+    .campo + .campo { margin-top: 12px; }
     .linha-check { display: flex; gap: 10px; align-items: center; }
-    .linha-check + .linha-check { margin-top: 10px; }
     .linha-check input[type=checkbox] { width: 16px; height: 16px; margin: 0; flex: none; }
-    .linha-check input[type=time] { width: 112px; flex: none; }
-    .rodape-secao { display: flex; align-items: center; justify-content: space-between; gap: 10px; flex-wrap: wrap; margin-top: 14px; padding-top: 12px; border-top: 1px solid #eef2f6; }
-    .rodape-secao .ajuda { margin: 0; }
-    .teste { display: flex; align-items: center; gap: 10px; }
     #resultadoTeste { color: var(--mudo); font-size: 12.5px; }
     #resultadoTeste.ok { color: var(--ok); } #resultadoTeste.erro { color: var(--erro); }
     .erro-campo { color: var(--erro); font-size: 12.5px; margin-top: 6px; }
 
-    .selo { display: inline-flex; align-items: center; gap: 6px; font-weight: 600; padding: 4px 10px; border-radius: 999px; background: #eef2f6; white-space: nowrap; }
+    .selo { display: inline-flex; align-items: center; gap: 6px; font-weight: 600; padding: 4px 10px; border-radius: 999px; background: var(--linha); white-space: nowrap; }
     .selo::before { content: ""; width: 8px; height: 8px; border-radius: 50%; background: #9aa8b6; }
     .selo.ok { color: var(--ok); background: #e8f5ec; } .selo.ok::before { background: var(--ok); }
     .selo.erro { color: var(--erro); background: #fdecea; } .selo.erro::before { background: var(--erro); }
-    .conectar { margin-bottom: 14px; border-color: #f3c9c4; }
-    .conectar .entre { justify-content: space-between; }
-    pre { background: #eef2f6; padding: 8px 10px; border-radius: 4px; overflow-x: auto; margin: 6px 0 0; font-size: 12.5px; }
-    code { background: #eef2f6; padding: 1px 4px; border-radius: 3px; font-size: 12.5px; }
+    .conectar { margin-bottom: 14px; border-color: #f3c9c4; display: block; }
+    .conectar .topo { display: flex; align-items: center; justify-content: space-between; gap: 10px; }
+    pre { background: var(--linha); padding: 8px 10px; border-radius: 4px; overflow-x: auto; margin: 6px 0 0; font-size: 12.5px; }
+    code { background: var(--linha); padding: 1px 4px; border-radius: 3px; font-size: 12.5px; }
     pre code { padding: 0; }
-
-    .pratica { background: #f0f6fd; border-color: #cfe0f5; }
-    .pratica table { width: 100%; border-collapse: collapse; }
-    .pratica th { text-align: left; font-size: 12.5px; color: var(--mudo); font-weight: 600; padding: 0 8px 6px 0; border-bottom: 1px solid #cfe0f5; }
-    .pratica td { padding: 7px 8px 7px 0; border-bottom: 1px solid #dde9f7; vertical-align: top; }
-    .pratica td:last-child { font-weight: 600; width: 44%; }
-    .pratica .ajuda { margin-top: 10px; }
 
     details > summary { cursor: pointer; font-weight: 600; font-size: 15px; }
     details > summary .ajuda { font-weight: 400; display: inline; margin-left: 6px; }
     details[open] > summary { margin-bottom: 16px; }
-    .avancado { display: grid; grid-template-columns: 1fr 1fr; gap: 24px 28px; }
+    .avancado { display: grid; grid-template-columns: 1fr 1fr; gap: 20px 28px; }
     .avancado .inteira { grid-column: 1 / -1; }
 
-    button { background: var(--azul); color: #fff; border: 1px solid var(--azul); border-radius: 4px; padding: 6px 14px; font: inherit; cursor: pointer; white-space: nowrap; }
+    button { background: var(--azul); color: #fff; border: 1px solid var(--azul); border-radius: 4px; padding: 5px 14px; font: inherit; cursor: pointer; white-space: nowrap; }
     button.sec { background: #fff; color: var(--azul); }
 
-    @media (max-width: 760px) {
+    @media (max-width: 800px) {
       header { flex-direction: column; }
       .estado { text-align: left; }
-      .grade, .avancado { grid-template-columns: 1fr; }
+      .avancado { grid-template-columns: 1fr; }
+      /* Tela estreita: cada regra empilha (situação em cima, ação embaixo). */
+      .regras thead { display: none; }
+      .regras tr, .regras td { display: block; width: auto !important; }
+      .regras td { padding: 0 0 2px; border-bottom: 0; }
+      .regras tr:not(.grupo) { padding: 8px 0; border-bottom: 1px solid var(--linha); }
+      .regras .grupo td { padding-top: 14px; }
+      .regras .nw { white-space: normal; }
     }
   </style>
 </head>
@@ -94,7 +99,7 @@
   </header>
 
   <section id="instalar" class="conectar" hidden>
-    <div class="entre">
+    <div class="topo">
       <h2 style="margin:0">Conectar ao GitHub</h2>
       <button type="button" class="sec" id="testar">Verificar de novo</button>
     </div>
@@ -102,46 +107,26 @@
     <pre><code>node extensao/ponte/instalar.js --usuario &lt;sua-conta-do-gh&gt;</code></pre>
   </section>
 
-  <div class="grade">
-    <div class="coluna">
-      <section>
-        <h2>Sua rotina</h2>
-        <div class="lado-a-lado">
-          <div class="campo">
-            <label for="jornadaHoras">Jornada diária</label>
-            <div class="entre"><input id="jornadaHoras" type="number" step="0.25" min="1" max="24"> horas</div>
-          </div>
-          <div class="campo">
-            <span class="rotulo">Hora extra</span>
-            <div class="entre">atividade antes das <input id="inicioExpediente" type="time"> ou depois das <input id="fimExpediente" type="time"></div>
-          </div>
-        </div>
-        <div id="erroHorario" class="erro-campo" hidden>O segundo horário deve ser depois do primeiro.</div>
-      </section>
-
-      <section>
-        <h2>Lembretes</h2>
-        <label class="linha-check">Avisar às <input id="horaLembrete" type="time"> se faltar lançar horas</label>
-        <label class="linha-check">Lembrar de enviar a semana na sexta às <input id="horaEnvio" type="time"></label>
-        <div class="rodape-secao">
-          <p class="ajuda">Precisa do Chrome aberto.</p>
-          <div class="teste">
-            <span id="resultadoTeste">Não grava nada no PSOffice.</span>
-            <button type="button" class="sec" id="verificar">Testar lembretes</button>
-          </div>
-        </div>
-      </section>
+  <section>
+    <table class="regras">
+      <thead><tr><th>Quando</th><th>O assistente</th></tr></thead>
+      <tbody>
+        <tr class="grupo"><td colspan="2">Lançamentos</td></tr>
+        <tr><td>O dia tem atividade no GitHub e nenhuma hora lançada</td><td class="faz nw">Sugere <input id="jornadaHoras" type="number" step="0.25" min="1" max="24" aria-label="Horas sugeridas por dia"> h e os links do Jira</td></tr>
+        <tr><td>Um dia útil passou sem atividade e sem horas</td><td class="faz">Sugere registrar ausência</td></tr>
+        <tr><td class="nw">Há atividade antes das <input id="inicioExpediente" type="time" aria-label="Início"> ou depois das <input id="fimExpediente" type="time" aria-label="Fim"></td><td class="faz">Avisa possível hora extra</td></tr>
+        <tr><td>Há atividade no fim de semana ou feriado</td><td class="faz">Avisa possível hora extra</td></tr>
+        <tr class="grupo"><td colspan="2">Lembretes <span style="text-transform:none;letter-spacing:0;font-weight:400">· precisam do Chrome aberto</span></td></tr>
+        <tr><td class="nw">Todo dia útil às <input id="horaLembrete" type="time" aria-label="Horário do lembrete diário"></td><td class="faz">Avisa se faltar lançar horas</td></tr>
+        <tr><td class="nw">Toda sexta às <input id="horaEnvio" type="time" aria-label="Horário do lembrete de envio"></td><td class="faz">Lembra de enviar a semana</td></tr>
+      </tbody>
+    </table>
+    <div id="erroHorario" class="erro-campo" hidden>O segundo horário deve ser depois do primeiro.</div>
+    <div class="rodape">
+      <span class="ajuda" style="margin:0">Nada é gravado sem você revisar e confirmar.</span>
+      <span><span id="resultadoTeste"></span> <button type="button" class="sec" id="verificar">Testar lembretes</button></span>
     </div>
-
-    <section class="pratica">
-      <h2>Como funciona</h2>
-      <table>
-        <thead><tr><th>Quando o dia tem</th><th>O assistente</th></tr></thead>
-        <tbody id="pratica"></tbody>
-      </table>
-      <p class="ajuda">Nada é gravado sem você revisar e confirmar.</p>
-    </section>
-  </div>
+  </section>
 
   <section class="largura-toda">
     <details>
@@ -152,26 +137,22 @@
           <div class="campo">
             <label for="atividadePadrao">Atividade das sugestões</label>
             <select id="atividadePadrao"><option value="">Automática (a com mais horas na semana)</option></select>
-            <p class="ajuda" id="ajudaAtividade">Para usar sempre a mesma atividade.</p>
           </div>
           <div class="campo">
-            <label for="feriadosExtras">Feriados locais</label>
+            <label for="feriadosExtras">Feriados locais <span class="ajuda" style="display:inline">· um por linha, AAAA-MM-DD (os nacionais já estão incluídos)</span></label>
             <textarea id="feriadosExtras" rows="3" placeholder="2026-08-22"></textarea>
-            <p class="ajuda">Um por linha (AAAA-MM-DD). Os nacionais já estão incluídos.</p>
           </div>
         </div>
 
         <div>
           <h3>Justificativa</h3>
           <div class="campo">
-            <label for="jiraBase">Endereço do Jira</label>
+            <label for="jiraBase">Endereço do Jira <span class="ajuda" style="display:inline">· preenchido sozinho</span></label>
             <input id="jiraBase" type="text" placeholder="https://empresa.atlassian.net/browse/">
-            <p class="ajuda">Preenchido sozinho.</p>
           </div>
           <div class="campo">
-            <label for="prefixosJira">Projetos do Jira</label>
+            <label for="prefixosJira">Projetos do Jira <span class="ajuda" style="display:inline">· vazio aceita qualquer chave</span></label>
             <input id="prefixosJira" type="text" placeholder="ABC, XYZ">
-            <p class="ajuda">Só aceita chaves destes projetos. Vazio: qualquer chave.</p>
           </div>
           <label class="linha-check" style="margin-top:12px"><input id="justificativaComTitulos" type="checkbox"> Sem chave do Jira, usar o título do PR ou commit (leva texto do cliente ao PSOffice)</label>
         </div>

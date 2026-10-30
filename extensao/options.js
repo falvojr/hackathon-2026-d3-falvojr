@@ -21,21 +21,8 @@
     });
   }
 
-  const horasBr = (h) => String(h).replace('.', ',');
-
-  // Resumo em linguagem simples do que o assistente vai fazer com os valores da tela.
-  function atualizarPratica() {
-    const jornada = Number($('jornadaHoras').value) || 8;
-    const inicio = $('inicioExpediente').value || '08:00';
-    const fim = $('fimExpediente').value || '18:00';
-    // Cada linha: situação do dia → o que o assistente faz, já com os valores da tela.
-    const linhas = [
-      ['Atividade no GitHub e nenhuma hora lançada', `Sugere <b>${horasBr(jornada)}h</b> e os links do Jira`],
-      ['Nenhuma atividade e nenhuma hora (dia útil que já passou)', 'Sugere registrar ausência'],
-      [`Atividade antes das <b>${inicio}</b> ou depois das <b>${fim}</b>`, 'Avisa possível hora extra'],
-      ['Atividade no fim de semana ou feriado', 'Avisa possível hora extra'],
-    ];
-    $('pratica').innerHTML = linhas.map(([quando, faz]) => `<tr><td>${quando}</td><td>${faz}</td></tr>`).join('');
+  // Os valores ficam dentro das próprias regras da página; aqui só se confere o horário da hora extra.
+  function validarHorario() {
     const invalido = $('fimExpediente').value && $('inicioExpediente').value && $('fimExpediente').value <= $('inicioExpediente').value;
     $('erroHorario').hidden = !invalido;
     return !invalido;
@@ -47,7 +34,7 @@
   }
 
   async function salvar() {
-    if (!atualizarPratica()) return status('Não salvo: confira os horários da hora extra.', 'erro');
+    if (!validarHorario()) return status('Não salvo: confira os horários da hora extra.', 'erro');
     await Config.salvar({
       jornadaHoras: Number($('jornadaHoras').value) || 8,
       inicioExpediente: $('inicioExpediente').value || '08:00',
@@ -67,7 +54,7 @@
   // Salva sozinho a cada alteração.
   document.querySelectorAll('input, select, textarea').forEach((el) => {
     el.addEventListener('change', () => salvar().catch((e) => status(e.message, 'erro')));
-    if (el.type === 'number' || el.type === 'time') el.addEventListener('input', atualizarPratica);
+    if (el.type === 'time') el.addEventListener('input', validarHorario);
   });
 
   async function verificarPonte() {
@@ -87,15 +74,22 @@
     }
   }
 
+  // Aviso dentro da própria lista (item desabilitado), sem texto extra na página.
+  function avisoNaLista(select, texto) {
+    const aviso = new Option(texto, '');
+    aviso.disabled = true;
+    select.add(aviso);
+  }
+
   // Lista as atividades do PSOffice pelo nome (em vez de pedir o atribId); sem sessão, fica só "Automática".
   async function carregarAtividades() {
     const select = $('atividadePadrao');
     try {
       const lista = await mensagem({ tipo: 'atividades' });
       for (const a of lista) select.add(new Option(a.nome, a.atribId));
-      if (!lista.length) $('ajudaAtividade').textContent = 'Nenhuma atividade encontrada no PSOffice.';
+      if (!lista.length) avisoNaLista(select, 'Nenhuma atividade encontrada no PSOffice');
     } catch (e) {
-      $('ajudaAtividade').textContent = 'Abra o PSOffice e recarregue esta página para ver suas atividades.';
+      avisoNaLista(select, 'Abra o PSOffice e recarregue para ver suas atividades');
     }
     if (cfg.atividadePadrao && ![...select.options].some((o) => o.value === cfg.atividadePadrao)) {
       select.add(new Option(`Atividade ${cfg.atividadePadrao}`, cfg.atividadePadrao));
@@ -123,7 +117,7 @@
     }
   };
 
-  atualizarPratica();
+  validarHorario();
   verificarPonte();
   carregarAtividades();
 })();
