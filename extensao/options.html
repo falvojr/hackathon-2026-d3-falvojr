@@ -24,7 +24,7 @@
     h2 { font-size: 15px; margin: 0 0 12px; }
     h3 { font-size: 12.5px; text-transform: uppercase; letter-spacing: .04em; color: var(--mudo); margin: 0 0 10px; }
 
-    .lado-a-lado { display: flex; gap: 28px; flex-wrap: wrap; }
+    .lado-a-lado { display: flex; gap: 14px 28px; flex-wrap: wrap; }
     .campo > label, .rotulo { display: block; font-weight: 600; margin-bottom: 4px; }
     .campo + .campo { margin-top: 14px; }
     .lado-a-lado .campo + .campo { margin-top: 0; }
@@ -58,8 +58,11 @@
     pre code { padding: 0; }
 
     .pratica { background: #f0f6fd; border-color: #cfe0f5; }
-    .pratica ul { margin: 0; padding-left: 18px; }
-    .pratica li + li { margin-top: 6px; }
+    .pratica table { width: 100%; border-collapse: collapse; }
+    .pratica th { text-align: left; font-size: 12.5px; color: var(--mudo); font-weight: 600; padding: 0 8px 6px 0; border-bottom: 1px solid #cfe0f5; }
+    .pratica td { padding: 7px 8px 7px 0; border-bottom: 1px solid #dde9f7; vertical-align: top; }
+    .pratica td:last-child { font-weight: 600; width: 44%; }
+    .pratica .ajuda { margin-top: 10px; }
 
     details > summary { cursor: pointer; font-weight: 600; font-size: 15px; }
     details > summary .ajuda { font-weight: 400; display: inline; margin-left: 6px; }
@@ -109,11 +112,11 @@
             <div class="entre"><input id="jornadaHoras" type="number" step="0.25" min="1" max="24"> horas</div>
           </div>
           <div class="campo">
-            <span class="rotulo">Horário de trabalho</span>
-            <div class="entre">das <input id="inicioExpediente" type="time"> às <input id="fimExpediente" type="time"></div>
+            <span class="rotulo">Hora extra</span>
+            <div class="entre">atividade antes das <input id="inicioExpediente" type="time"> ou depois das <input id="fimExpediente" type="time"></div>
           </div>
         </div>
-        <div id="erroHorario" class="erro-campo" hidden>O fim deve ser depois do início.</div>
+        <div id="erroHorario" class="erro-campo" hidden>O segundo horário deve ser depois do primeiro.</div>
       </section>
 
       <section>
@@ -131,8 +134,12 @@
     </div>
 
     <section class="pratica">
-      <h2>Na prática</h2>
-      <ul id="pratica"></ul>
+      <h2>Como funciona</h2>
+      <table>
+        <thead><tr><th>Quando o dia tem</th><th>O assistente</th></tr></thead>
+        <tbody id="pratica"></tbody>
+      </table>
+      <p class="ajuda">Nada é gravado sem você revisar e confirmar.</p>
     </section>
   </div>
 

@@ -28,14 +28,14 @@
     const jornada = Number($('jornadaHoras').value) || 8;
     const inicio = $('inicioExpediente').value || '08:00';
     const fim = $('fimExpediente').value || '18:00';
-    const itens = [
-      `Dia com atividade e sem horas: sugere <b>${horasBr(jornada)}h</b> e os links do Jira.`,
-      'Dia sem horas e sem atividade: sugere ausência.',
-      `Atividade antes das <b>${inicio}</b>, depois das <b>${fim}</b> ou no fim de semana: possível hora extra.`,
-      'Almoço e pausas não contam.',
-      'Nada é gravado sem você confirmar.',
+    // Cada linha: situação do dia → o que o assistente faz, já com os valores da tela.
+    const linhas = [
+      ['Atividade no GitHub e nenhuma hora lançada', `Sugere <b>${horasBr(jornada)}h</b> e os links do Jira`],
+      ['Nenhuma atividade e nenhuma hora (dia útil que já passou)', 'Sugere registrar ausência'],
+      [`Atividade antes das <b>${inicio}</b> ou depois das <b>${fim}</b>`, 'Avisa possível hora extra'],
+      ['Atividade no fim de semana ou feriado', 'Avisa possível hora extra'],
     ];
-    $('pratica').innerHTML = itens.map((t) => `<li>${t}</li>`).join('');
+    $('pratica').innerHTML = linhas.map(([quando, faz]) => `<tr><td>${quando}</td><td>${faz}</td></tr>`).join('');
     const invalido = $('fimExpediente').value && $('inicioExpediente').value && $('fimExpediente').value <= $('inicioExpediente').value;
     $('erroHorario').hidden = !invalido;
     return !invalido;
@@ -47,7 +47,7 @@
   }
 
   async function salvar() {
-    if (!atualizarPratica()) return status('Não salvo: confira o horário de trabalho.', 'erro');
+    if (!atualizarPratica()) return status('Não salvo: confira os horários da hora extra.', 'erro');
     await Config.salvar({
       jornadaHoras: Number($('jornadaHoras').value) || 8,
       inicioExpediente: $('inicioExpediente').value || '08:00',
