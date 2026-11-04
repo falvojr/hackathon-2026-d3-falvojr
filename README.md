@@ -2,6 +2,8 @@
 
 Hackathon Ideen 2026 · Desafio 3 (Automação de controles internos) · controle **1. Horas não lançadas**, resolvido do lado de quem lança.
 
+Versão atual: **v2.0.0**. A versão entregue no prazo do hackathon é a **v1.1.0**. O que mudou entre elas está no [CHANGELOG](CHANGELOG.md).
+
 ![Painel do assistente na tela de Horas (dados mascarados)](evidencias/prints/assistente-horas-demo.gif)
 
 ## 1. O problema
@@ -74,7 +76,7 @@ O primeiro aplica a regra (o mesmo `extensao/lib/regras.js` da extensão) em `da
    ```
 
    Registra só para o seu usuário, sem admin, e termina com `Teste ok`. Para desfazer: `--remover`.
-2. **Extensão**: em `chrome://extensions`, ligue o *Modo do desenvolvedor* e use *Carregar sem compactação* na pasta `extensao/`. As opções abrem e mostram `Conectado como <sua-conta>`. Os valores padrão já servem; a página explica cada um e resume "na prática" o que o assistente vai fazer. Salva sozinha.
+2. **Extensão**: em `chrome://extensions`, ligue o *Modo do desenvolvedor* e use *Carregar sem compactação* na pasta `extensao/`. As opções abrem e mostram `Conectado como <sua-conta>`. Os valores padrão já servem: cada regra aparece numa frase, com o valor editável dentro dela. Salva sozinha.
 3. **Uso**: abra *Horas* no PSOffice. O painel aparece acima da grade semanal.
 
 Sem a ponte, a extensão continua funcionando (lembretes, atividades, ausência e envio), só sem as sugestões vindas do GitHub.
@@ -85,7 +87,7 @@ Hoje a fonte de atividade é o GitHub, o que atende quem desenvolve. Para outros
 
 ## 4. Evidências
 
-O GIF do topo, passo a passo, com telas reais do uso (semanas de 04 a 26/10). Os quadros são da evolução da extensão nesses dias: nos passos 1 e 6 o botão ainda se chamava "Aplicar sugestões" (hoje "Revisar sugestões"); nos passos 1 a 3 o aviso de hora extra ainda usava a estimativa anterior ("até +Xh", erro 13 da seção 5); nos passos 4 e 5 a linha de domingo foi retirada do quadro porque mostrava a estimativa de hora extra de fim de semana anterior à correção (erro 12 da seção 5). Nome, projeto, conta, repositórios, títulos e chaves do Jira estão **mascarados**.
+O GIF do topo, passo a passo, com telas reais do uso (semanas de 04 a 26/10, versão v1.1.0). Os quadros são da evolução da extensão nesses dias: nos passos 1 e 6 o botão ainda se chamava "Aplicar sugestões" (hoje "Revisar sugestões"); nos passos 1 a 3 o aviso de hora extra ainda usava a estimativa anterior ("até +Xh", erro 13 da seção 5); nos passos 4 e 5 a linha de domingo foi retirada do quadro porque mostrava a estimativa de hora extra de fim de semana anterior à correção (erro 12 da seção 5). Nome, projeto, conta, repositórios, títulos e chaves do Jira estão **mascarados**.
 
 | Passo | Tela |
 |---|---|
@@ -120,7 +122,7 @@ Como gerar de novo: com o painel carregado, cole `kit/anonimizar-tela.js` no con
 
 ## Como a IA foi usada
 
-Todo o desenvolvimento foi feito em par com o **Claude Code** (app desktop, aba Code), usando o modelo **Claude Opus 5.5 com esforço Alto**, em uma única sessão de 23 a 26/10/2026.
+Todo o desenvolvimento foi feito em par com o **Claude Code** (app desktop, aba Code), usando o modelo **Claude Opus 5.5 com esforço Alto**, em uma única sessão: de 23 a 26/10/2026 até a entrega (v1.1.0) e, depois, nos refinamentos até 04/11/2026 (v2.0.0).
 
 | Etapa | O que a IA fez | O que a pessoa decidiu ou validou |
 |---|---|---|
