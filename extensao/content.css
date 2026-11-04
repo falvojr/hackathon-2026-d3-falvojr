@@ -7,6 +7,8 @@
   font: 13px/1.4 -apple-system, "Segoe UI", Roboto, Arial, sans-serif;
   color: #1d2733;
 }
+/* Formulários escondidos ficam escondidos mesmo sem o CSS da página (os blocos abaixo usam display:flex). */
+#assistente-horas [hidden] { display: none !important; }
 #assistente-horas header,
 #assistente-horas footer {
   display: flex;

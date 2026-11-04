@@ -1,19 +1,22 @@
-"""Monta o GIF de demonstração com legenda por passo a partir de prints já mascarados.
+"""Monta o GIF de demonstração, com legenda por passo, a partir dos quadros da demonstração fictícia.
 
-Uso: python kit/montar-gif.py <pasta-com-os-quadros> evidencias/prints/assistente-horas-demo.gif
-Os quadros esperados (PNG/JPG) são os listados em PASSOS, na ordem.
+Uso:
+  node kit/demo/capturar.js evidencias/prints/quadros
+  python kit/montar-gif.py evidencias/prints/quadros evidencias/prints/assistente-horas-demo.gif
+Os quadros esperados (PNG) são os listados em PASSOS, na ordem.
 """
 import sys
 from pathlib import Path
 
 from PIL import Image, ImageDraw, ImageFont
 
-LARGURA, ALTURA = 1280, 720
+LARGURA, ALTURA = 1280, 860
 FAIXA = 96
 FUNDO = (236, 240, 244)
 AZUL = (29, 52, 70)
 DESTAQUE = (31, 111, 209)
 FONTES = Path("C:/Windows/Fonts")
+RODAPE = "Hackathon Ideen 2026 · Desafio 3 · v1.2.0 · dados fictícios"
 
 
 def fonte(nome, tamanho):
@@ -25,30 +28,31 @@ def fonte(nome, tamanho):
     return ImageFont.load_default()
 
 
-TITULO = fonte("segoeuib.ttf", 34)
-TEXTO = fonte("segoeui.ttf", 26)
+TITULO = fonte("segoeuib.ttf", 32)
+TEXTO = fonte("segoeui.ttf", 28)
 PEQUENO = fonte("segoeui.ttf", 18)
 
 # (arquivo do quadro, legenda, segundos na tela)
 PASSOS = [
-    ("painel.png", "O painel aparece em cima da grade de Horas do PSOffice", 4.5),
-    ("evidencias.png", "Cada dia mostra o que foi feito: PRs, commits e chaves do Jira", 4.5),
-    ("hora-extra.png", "Atividade fora do expediente vira aviso de possível hora extra", 4.5),
-    ("revisar.png", "Revisar sugestões: veja o antes → depois e grave só o que marcar", 5),
-    ("hoje.png", "Semana atual: hoje sem atividade ainda não conta como ausência", 4.5),
-    ("cancelar-envio.png", "Semana enviada e não aprovada: dá para cancelar o envio e ajustar", 4.5),
+    ("painel.png", "Na tela de Horas do PSOffice, um painel mostra a semana dia a dia", 5),
+    ("evidencias.png", "Dia sem horas: sugere horas e links do Jira dos seus commits e PRs", 5),
+    ("ajustar.png", "Fora do expediente vira hora extra; Ajustar soma no dia lançado", 5),
+    ("revisar.png", "Revisar sugestões: veja o antes → depois e grave só o que marcar", 5.5),
+    ("recolhido.png", "Recolhido, o painel vira uma linha com o resumo da semana", 4.5),
+    ("opcoes.png", "Opções: cada regra numa frase, com o valor editável dentro dela", 5),
+    ("opcoes-avancado.png", "Avançado (opcional): atividade, feriados locais e Jira", 4.5),
 ]
 
 
 def cartao(titulo, linhas):
     img = Image.new("RGB", (LARGURA, ALTURA), AZUL)
     d = ImageDraw.Draw(img)
-    d.text((80, 170), titulo, font=fonte("segoeuib.ttf", 52), fill="white")
-    y = 270
+    d.text((80, 230), titulo, font=fonte("segoeuib.ttf", 52), fill="white")
+    y = 330
     for linha in linhas:
         d.text((80, y), linha, font=TEXTO, fill=(214, 226, 238))
-        y += 50
-    d.text((80, ALTURA - 60), "Hackathon Ideen 2026 · Desafio 3 · dados mascarados", font=PEQUENO, fill=(150, 170, 190))
+        y += 52
+    d.text((80, ALTURA - 60), RODAPE, font=PEQUENO, fill=(150, 170, 190))
     return img
 
 
@@ -59,11 +63,11 @@ def quadro(caminho, legenda, n, total):
     d.ellipse([28, 24, 76, 72], fill=DESTAQUE)
     d.text((52, 48), str(n), font=TITULO, fill="white", anchor="mm")
     d.text((96, 48), legenda, font=TITULO, fill="white", anchor="lm")
-    d.text((LARGURA - 24, ALTURA - 14), f"{n}/{total} · dados mascarados", font=PEQUENO, fill=(120, 130, 140), anchor="rs")
+    d.text((LARGURA - 24, ALTURA - 14), f"{n}/{total} · dados fictícios", font=PEQUENO, fill=(120, 130, 140), anchor="rs")
 
     print_ = Image.open(caminho).convert("RGB")
     area_l, area_a = LARGURA - 80, ALTURA - FAIXA - 70
-    escala = min(area_l / print_.width, area_a / print_.height, 1.6)
+    escala = min(area_l / print_.width, area_a / print_.height)
     print_ = print_.resize((int(print_.width * escala), int(print_.height * escala)), Image.LANCZOS)
     x = (LARGURA - print_.width) // 2
     y = FAIXA + 25 + (area_a - print_.height) // 2
@@ -89,8 +93,9 @@ def main(pasta, saida):
         "1. node extensao/ponte/instalar.js --usuario <conta-do-gh>",
         "2. Carregar a pasta extensao/ no Chrome ou Edge",
         "3. Abrir Horas no PSOffice",
+        "Sem PSOffice? Abra kit/demo/painel.html no navegador.",
     ]))
-    duracoes.append(4)
+    duracoes.append(5)
 
     paleta = [q.quantize(colors=128, method=Image.Quantize.MEDIANCUT, dither=Image.Dither.NONE) for q in quadros]
     paleta[0].save(saida, save_all=True, append_images=paleta[1:], duration=[int(s * 1000) for s in duracoes], loop=0, optimize=True)

@@ -1,0 +1,46 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+  <meta charset="utf-8">
+  <title>Assistente de Horas · demonstração</title>
+  <link rel="stylesheet" href="../../extensao/content.css">
+  <style>
+    body { margin: 0; font: 13px/1.4 Arial, sans-serif; color: #1d2733; background: #e9ebee; }
+    .topo { background: #1c3446; color: #fff; padding: 10px 24px; font-weight: 600; display: flex; justify-content: space-between; }
+    .topo span { font-weight: 400; color: #b9c7d4; }
+    main { padding: 16px 24px 32px; }
+    h1 { font-size: 20px; margin: 0 0 4px; background: #d9dcdf; padding: 12px 16px; }
+    .grade { width: 100%; border-collapse: collapse; background: #f3f4f6; border: 1px solid #d6dbe0; margin-top: 6px; }
+    .grade th, .grade td { padding: 8px; text-align: center; border-bottom: 1px solid #d6dbe0; }
+    .grade td:first-child, .grade th:first-child { text-align: left; }
+    .grade input { width: 54px; text-align: center; border: 1px solid #c9d0d8; border-radius: 3px; padding: 3px; }
+    .acoes { text-align: right; margin-top: 12px; }
+    .acoes input { background: #1f6fd1; color: #fff; border: 0; border-radius: 3px; padding: 8px 14px; }
+  </style>
+</head>
+<body>
+  <div class="topo">PSOffice <span>demonstração com dados fictícios · nada é gravado</span></div>
+  <main>
+    <h1>Horas</h1>
+    <input type="hidden" id="dataReferencia" value="30/10/2026">
+    <form onsubmit="return false">
+      <table class="grade">
+        <thead><tr><th>25 a 31 de outubro de 2026</th><th>Dom 25</th><th>Seg 26</th><th>Ter 27</th><th>Qua 28</th><th>Qui 29</th><th>Sex 30</th><th>Sáb 31</th><th>Total</th></tr></thead>
+        <tbody><tr>
+          <td><b>1-Desenvolvimento</b><br>PROJETO_DEMO</td>
+          <td><input value=""></td><td><input value="8.00"></td><td><input value=""></td><td><input value=""></td>
+          <td><input value="8.00"></td><td><input value="9.00"></td><td><input value=""></td><td>25.00</td>
+        </tr></tbody>
+      </table>
+      <div class="acoes"><input type="submit" name="button_SubmeteSemanal" value="Enviar para Aprovação"></div>
+    </form>
+  </main>
+
+  <!-- Simulador primeiro (relógio, Chrome, PSOffice e GitHub fictícios); depois o código real da extensão. -->
+  <script src="simulador.js"></script>
+  <script src="../../extensao/lib/regras.js"></script>
+  <script src="../../extensao/lib/config.js"></script>
+  <script src="../../extensao/lib/assistente.js"></script>
+  <script src="../../extensao/content.js"></script>
+</body>
+</html>

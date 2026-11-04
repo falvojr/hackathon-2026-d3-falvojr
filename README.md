@@ -2,9 +2,9 @@
 
 Hackathon Ideen 2026 · Desafio 3 (Automação de controles internos) · controle **1. Horas não lançadas**, resolvido do lado de quem lança.
 
-Versão atual: **v2.0.0**. A versão entregue no prazo do hackathon é a **v1.1.0**. O que mudou entre elas está no [CHANGELOG](CHANGELOG.md).
+Versão atual: **v1.2.0**. Entregue no prazo do hackathon: **v1.1.0**. A história das versões está no [CHANGELOG](CHANGELOG.md).
 
-![Painel do assistente na tela de Horas (dados mascarados)](evidencias/prints/assistente-horas-demo.gif)
+![Painel do assistente na tela de Horas (dados fictícios)](evidencias/prints/assistente-horas-demo.gif)
 
 ## 1. O problema
 
@@ -67,6 +67,10 @@ node kit/testar.js
 
 O primeiro aplica a regra (o mesmo `extensao/lib/regras.js` da extensão) em `dados/horas/*.csv`, grava `evidencias/dias_sem_lancamento.csv` e compara com o esperado do kit. O segundo roda os testes das regras, da ponte e dos formulários.
 
+### Ver o painel sem instalar nada
+
+Abra `kit/demo/painel.html` no Chrome ou Edge. É o código real do painel numa tela de Horas simulada, com uma semana fictícia (GitHub e PSOffice simulados, relógio parado na sexta 30/10/2026). Os botões funcionam, mas nada é gravado.
+
 ### O assistente no dia a dia (3 passos)
 
 1. **Ponte do GitHub**, num terminal comum (no Windows: Iniciar > Terminal; terminais embutidos em apps empacotados não servem, e o instalador avisa):
@@ -81,24 +85,34 @@ O primeiro aplica a regra (o mesmo `extensao/lib/regras.js` da extensão) em `da
 
 Sem a ponte, a extensão continua funcionando (lembretes, atividades, ausência e envio), só sem as sugestões vindas do GitHub.
 
+Para atualizar: baixe a versão nova (`git pull`) e recarregue a extensão em `chrome://extensions`. As configurações são mantidas.
+
 ### Novos conectores
 
 Hoje a fonte de atividade é o GitHub, o que atende quem desenvolve. Para outros perfis, a ponte já junta evidências de uma lista de conectores (`CONECTORES` em `extensao/ponte/ponte.js`): cada um recebe o período e devolve `{ porDia: { 'AAAA-MM-DD': [{ ts, fonte, repo, texto, url }] } }`, com a sua própria lista de leituras permitidas. Candidatos naturais: Jira (issues e worklogs), GitLab/Azure DevOps, agenda (Google/Outlook) e Teams/Slack.
 
 ## 4. Evidências
 
-O GIF do topo, passo a passo, com telas reais do uso (semanas de 04 a 26/10, versão v1.1.0). Os quadros são da evolução da extensão nesses dias: nos passos 1 e 6 o botão ainda se chamava "Aplicar sugestões" (hoje "Revisar sugestões"); nos passos 1 a 3 o aviso de hora extra ainda usava a estimativa anterior ("até +Xh", erro 13 da seção 5); nos passos 4 e 5 a linha de domingo foi retirada do quadro porque mostrava a estimativa de hora extra de fim de semana anterior à correção (erro 12 da seção 5). Nome, projeto, conta, repositórios, títulos e chaves do Jira estão **mascarados**.
+O GIF do topo mostra a versão atual (v1.2.0), passo a passo, com **dados fictícios**: é a demonstração `kit/demo/painel.html` (seção 3), com o código real da extensão, mais a página de Opções.
 
 | Passo | Tela |
 |---|---|
-| 1. O painel aparece em cima da grade de Horas do PSOffice | ![Painel](evidencias/prints/quadros/painel.png) |
-| 2. Cada dia mostra o que foi feito: PRs, commits e chaves do Jira | ![Evidências de um dia](evidencias/prints/quadros/evidencias.png) |
-| 3. Atividade fora do expediente vira aviso de possível hora extra | ![Hora extra](evidencias/prints/quadros/hora-extra.png) |
+| 1. Na tela de Horas do PSOffice, um painel mostra a semana dia a dia | ![Painel](evidencias/prints/quadros/painel.png) |
+| 2. Dia sem horas: sugere horas e links do Jira dos seus commits e PRs; a revisão de outra pessoa aparece apagada e não entra na justificativa | ![Evidências de um dia](evidencias/prints/quadros/evidencias.png) |
+| 3. Fora do expediente vira hora extra (só revisão pesa menos); Ajustar soma no dia lançado | ![Hora extra e Ajustar](evidencias/prints/quadros/ajustar.png) |
 | 4. Revisar sugestões: veja o antes → depois e grave só o que marcar | ![Revisar sugestões](evidencias/prints/quadros/revisar.png) |
-| 5. Semana atual: hoje sem atividade ainda não conta como ausência | ![Hoje](evidencias/prints/quadros/hoje.png) |
-| 6. Semana enviada e não aprovada: cancelar o envio para ajustar | ![Cancelar envio](evidencias/prints/quadros/cancelar-envio.png) |
+| 5. Recolhido, o painel vira uma linha com o resumo da semana | ![Painel recolhido](evidencias/prints/quadros/recolhido.png) |
+| 6. Opções: cada regra numa frase, com o valor editável dentro dela | ![Opções](evidencias/prints/quadros/opcoes.png) |
+| 7. Avançado (opcional): atividade, feriados locais e Jira | ![Opções avançadas](evidencias/prints/quadros/opcoes-avancado.png) |
 
-Como gerar de novo: com o painel carregado, cole `kit/anonimizar-tela.js` no console (F12) e tire os prints; depois `python kit/montar-gif.py evidencias/prints/quadros evidencias/prints/assistente-horas-demo.gif` monta o GIF com as legendas (requer Pillow). O script de máscara não contém dado real: descobre na página o que esconder.
+Como gerar de novo (requer Chrome ou Edge e Pillow):
+
+```bash
+node kit/demo/capturar.js evidencias/prints/quadros
+python kit/montar-gif.py evidencias/prints/quadros evidencias/prints/assistente-horas-demo.gif
+```
+
+O GIF da entrega (v1.1.0), com telas reais do uso entre 04 e 26/10, está em `evidencias/prints/v1.1.0/`. Nome, projeto, conta, repositórios, títulos e chaves do Jira estão **mascarados** por `kit/anonimizar-tela.js`, que não contém dado real: descobre na página o que esconder.
 
 - `evidencias/log-verificacao-kit.txt` e `evidencias/dias_sem_lancamento.csv`: regra do kit **idêntica ao esperado (61 linhas)**; rodar de novo gera o mesmo arquivo.
 - `evidencias/log-testes.txt`: 20 testes passando.
@@ -119,17 +133,19 @@ Como gerar de novo: com o painel carregado, cole `kit/anonimizar-tela.js` no con
 11. **O primeiro GIF era pouco claro**: página inteira reduzida, 4 quadros e nada dizendo o que olhar. Refeito em passos legendados, com recortes ampliados e tempo de leitura (`kit/montar-gif.py`).
 12. **Estimava hora extra de fim de semana a partir das 18:00**: um único evento às 20:19 de um domingo virava +2,5h. Pego no uso real; fora de dia útil, conta o intervalo da própria atividade.
 13. **A estimativa de hora extra ainda era agressiva**: contava do fim do expediente até o último evento e somava por cima do já lançado (um review de 30 min no domingo, com 1h lançada, virava 1,5h). Agora agrupa a atividade em sessões e compara com o lançado; na calibração com o histórico real, dias como 22/10 (10h lançadas, antes "até +4h") passaram a "já coberto".
+14. **O painel dependia do CSS do PSOffice para esconder formulários**: os blocos usam `display:flex`, que vence o atributo `hidden`, e no PSOffice funcionava graças ao CSS da própria página. Pego ao rodar o painel fora do PSOffice para o GIF com dados fictícios, quando Ajustar e ausência apareceram abertos em todos os dias. Agora o CSS do painel garante isso sozinho.
+15. **Numerou a versão refinada como v2.0.0**, sem nenhuma mudança incompatível: atualiza recarregando a extensão e mantém as configurações. Pelo versionamento semântico, é a v1.2.0.
 
 ## Como a IA foi usada
 
-Todo o desenvolvimento foi feito em par com o **Claude Code** (app desktop, aba Code), usando o modelo **Claude Opus 5.5 com esforço Alto**, em uma única sessão: de 23 a 26/10/2026 até a entrega (v1.1.0) e, depois, nos refinamentos até 04/11/2026 (v2.0.0).
+Todo o desenvolvimento foi feito em par com o **Claude Code** (app desktop, aba Code), usando o modelo **Claude Opus 5.5 com esforço Alto**, em uma única sessão: de 23 a 26/10/2026 até a entrega (v1.1.0) e, depois, nos refinamentos até 04/11/2026 (v1.2.0).
 
 | Etapa | O que a IA fez | O que a pessoa decidiu ou validou |
 |---|---|---|
 | Entendimento | Leu o kit e os slides; explorou o PSOffice só lendo (navegador embutido, com o login feito pela pessoa) e mapeou telas, endpoints e formulários | Escolheu a dor (horas não lançadas) e pediu algo usável de verdade, sem mock |
 | Construção | Escreveu a extensão, a ponte local, as regras, os testes e o instalador | Trocou o token na extensão pela ponte com o `gh`, por causa do monitoramento de tokens do cliente; pediu só links do Jira na justificativa e só das demandas de autoria (revisão e comentário não justificam horas, só pesam pouco na hora extra) |
 | Validação | Rodou testes, a regra contra o esperado do kit e comparou cada formulário com o que o navegador envia; testou no PSOffice real | Autorizou, uma a uma, as gravações reais (atividades, regravação de horas, envio da semana) e conferiu no Chrome (Claude in Chrome) |
-| Evidências | Criou a máscara de dados, capturou prints e montou o GIF | Pediu evidências mais claras, a revisão de sugestões e o repositório público sem dados sensíveis |
+| Evidências | Criou a máscara de dados, capturou prints e montou o GIF; depois, a demonstração com dados fictícios que gera o GIF atual | Pediu evidências mais claras, a revisão de sugestões, o repositório público sem dados sensíveis e releases que contem a história das versões |
 
 Ferramentas usadas pela IA: terminal, edição de arquivos, navegador embutido do app, Claude in Chrome e o `gh` da pessoa. Os erros da IA e as correções estão na seção 5.
 
@@ -138,7 +154,7 @@ Ferramentas usadas pela IA: terminal, edição de arquivos, navegador embutido d
 | Premissa (slides e kit) | Como foi atendida |
 |---|---|
 | Projeto individual, um repositório `hackathon-2026-d3-<usuário>` | Este repositório, na conta pessoal do autor (alinhado com a organização em vez de `ideen-tech`) |
-| Só dados fictícios; nada de dado de cliente ou de colaborador | A regra é validada com a massa fictícia do kit. As telas do uso real só aparecem **mascaradas** (pessoa, projeto, conta, repositórios, títulos, chaves e links do Jira) |
+| Só dados fictícios; nada de dado de cliente ou de colaborador | A regra é validada com a massa fictícia do kit e o GIF atual vem da demonstração fictícia (`kit/demo/`). As telas do uso real (GIF da v1.1.0) só aparecem **mascaradas** (pessoa, projeto, conta, repositórios, títulos, chaves e links do Jira) |
 | Nenhuma senha, chave ou token real em código, prompt ou tela | Sessão do navegador para o PSOffice e `gh` para o GitHub; nada é guardado. O campo `key` do `manifest.json` é uma chave **pública**, só fixa o ID da extensão |
 | Código de projeto de cliente fica fora | Do GitHub só se leem metadados; nenhum código de cliente no repositório |
 | Tudo roda na máquina; nuvem não é necessária | Extensão, ponte e scripts rodam localmente |

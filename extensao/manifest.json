@@ -1,7 +1,7 @@
 {
   "manifest_version": 3,
   "name": "Assistente de Horas PSOffice",
-  "version": "2.0.0",
+  "version": "1.2.0",
   "description": "Lembra, sugere e preenche o apontamento de horas do PSOffice a partir da sua atividade no GitHub.",
   "key": "MIIBIjANBgkqhkiG9w0BAQEFAAOCAQ8AMIIBCgKCAQEAlNx4ECFSS0OtK83h+aISy+tkoFMi1CNK6EKqRTxCnnyk7h6txKraYYx1cjQ8RQ18Pd+MyjmKKLOiNkm8ehdRqAfoQSq4mTos3W6kX+o4WcTsjJmj4tvxsXubwf3zEeXqzqoZynEsfJSzyNZTEBFhHSY5gjPy+cXPiZUBPUtvLTVxb/bjtnvxTG2qh0AEcySOdK2zFfJEnOAUc2rZ1IIwYsUSD+P8CabzxaMXcrSC+mMCxYlHJtVcFmEdjNfMHzOOuWOs30JNV3qZg83JsN8QT4e0nXiI2PYkc6xryNdEFwk+IpAN4uhg9tT3ezb9X2vAP4IsCv3nLr01x7qc3nvNOQIDAQAB",
   "icons": {
