@@ -1,4 +1,4 @@
-﻿ok - dias úteis ignoram fim de semana e feriado
+ok - dias úteis ignoram fim de semana e feriado
 ok - semana começa no domingo
 ok - data local usa o fuso de São Paulo
 ok - chaves do Jira sem falsos positivos
@@ -9,6 +9,7 @@ ok - análise da semana: horas, ausência, justificativa, futuro e hora extra
 ok - hoje sem atividade ainda não vira sugestão de ausência
 ok - dia lançado e não enviado pode ser ajustado; enviado não
 ok - revisão lista o que mudaria: horas novas, links que faltam e hora extra desmarcada
+ok - fim de semana e feriado com atividade: mesmo fluxo do dia útil, sem cobrar e desmarcado na revisão
 ok - hora extra por sessões: eventos próximos somam, isolados valem meia hora
 ok - justificativa só com o que é da pessoa: revisão, comentário e PR de outro ficam de fora
 ok - colaboração pesa menos na hora extra: review isolado vale 0,25h
@@ -19,4 +20,4 @@ ok - HTML malformado do PSOffice: aspas sobrando e ">" dentro de atributo
 ok - codificação windows-1252 igual à do navegador
 ok - atributos com JSON entre aspas simples
 
-20 testes passaram.
+21 testes passaram.

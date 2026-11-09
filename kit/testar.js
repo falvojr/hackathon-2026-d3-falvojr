@@ -158,6 +158,32 @@ teste('revisão lista o que mudaria: horas novas, links que faltam e hora extra 
   assert.deepStrictEqual([m[2].antes.horas, m[2].depois.horas], [8, 8.5]);
 });
 
+teste('fim de semana e feriado com atividade: mesmo fluxo do dia útil, sem cobrar e desmarcado na revisão', () => {
+  const ev = (dia, hora, fonte, texto) => ({ ts: `${dia}T${hora}:00-03:00`, fonte, repo: 'org/api', texto, url: '' });
+  const evidencias = {
+    // Domingo: commit e revisão na mesma sessão (19:50-20:19 = 29 + 30 min -> 1h), link só do commit.
+    '2026-10-18': [ev('2026-10-18', '19:50', 'commit', 'ABC-9 corrige'), ev('2026-10-18', '20:19', 'revisao', 'XYZ-1 do colega')],
+    // Feriado numa segunda: um PR às 15h.
+    '2026-10-19': [ev('2026-10-19', '15:00', 'pr', 'ABC-10 [PRD] deploy')],
+  };
+  const cfg = { jornadaHoras: 8, jiraBase: 'https://j/browse/' };
+  const a = Regras.analisarSemana({ semana: semanaFicticia({}), ausencias: [], feriados: new Set(['2026-10-19']), evidencias, cfg, hoje: '2026-10-20' });
+  const [dom, seg] = a.dias;
+  assert.deepStrictEqual([dom.situacao, dom.util, dom.feriado, dom.sugestao.horas, dom.sugestao.comentario], ['sugerir-horas', false, false, 1, 'https://j/browse/ABC-9']);
+  assert.deepStrictEqual([seg.situacao, seg.feriado, seg.sugestao.horas], ['sugerir-horas', true, 0.5]);
+  // Não são pendência: o selo do ícone e o resumo do painel não cobram fim de semana nem feriado.
+  assert.strictEqual(Regras.pendencias(a).length, 0);
+  const m = Regras.montarMudancas(a, {});
+  assert.deepStrictEqual(m.map((x) => [x.data, x.tipo, x.marcada]), [['2026-10-18', 'lancar', false], ['2026-10-19', 'lancar', false]]);
+  assert.match(m[0].nota, /^~1h fora do expediente em 1 sessão \(19:50–20:19\)$/);
+  // Semana já enviada (travada) ou sem atividade: continua só "Fim de semana".
+  const semAtividade = Regras.analisarSemana({ semana: semanaFicticia({}), ausencias: [], feriados: new Set(), evidencias: {}, cfg, hoje: '2026-10-20' });
+  assert.strictEqual(semAtividade.dias[0].situacao, 'fim-de-semana');
+  const travada = semanaFicticia({});
+  travada.celulas.forEach((c) => (c.travado = true));
+  assert.strictEqual(Regras.analisarSemana({ semana: travada, ausencias: [], feriados: new Set(), evidencias, cfg, hoje: '2026-10-20' }).dias[0].situacao, 'fim-de-semana');
+});
+
 const evento = (ts, fonte = 'commit') => ({ ts, fonte, repo: 'org/api', texto: 'x' });
 
 teste('hora extra por sessões: eventos próximos somam, isolados valem meia hora', () => {

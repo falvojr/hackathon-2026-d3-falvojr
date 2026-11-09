@@ -16,7 +16,7 @@ FUNDO = (236, 240, 244)
 AZUL = (29, 52, 70)
 DESTAQUE = (31, 111, 209)
 FONTES = Path("C:/Windows/Fonts")
-RODAPE = "Hackathon Ideen 2026 · Desafio 3 · v1.2.0 · dados fictícios"
+RODAPE = "Hackathon Ideen 2026 · Desafio 3 · v1.3.0 · dados fictícios"
 
 
 def fonte(nome, tamanho):
@@ -36,6 +36,7 @@ PEQUENO = fonte("segoeui.ttf", 18)
 PASSOS = [
     ("painel.png", "Na tela de Horas do PSOffice, um painel mostra a semana dia a dia", 5),
     ("evidencias.png", "Dia sem horas: sugere horas e links do Jira dos seus commits e PRs", 5),
+    ("fim-de-semana.png", "Fim de semana ou feriado com atividade: sugere as horas estimadas", 5),
     ("ajustar.png", "Fora do expediente vira hora extra; Ajustar soma no dia lançado", 5),
     ("revisar.png", "Revisar sugestões: veja o antes → depois e grave só o que marcar", 5.5),
     ("recolhido.png", "Recolhido, o painel vira uma linha com o resumo da semana", 4.5),

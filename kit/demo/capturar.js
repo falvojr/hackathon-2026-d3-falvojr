@@ -123,24 +123,27 @@ async function main() {
     await quadro('evidencias', [dia(27)], 0);
     await avaliar(`document.querySelector('${dia(27)} .ah-evid').open = false`);
 
-    // 3. Hora extra (só revisão pesa menos) e Ajustar num dia lançado e ainda não enviado.
+    // 3. Fim de semana com atividade: o mesmo fluxo, com as horas estimadas.
+    await quadro('fim-de-semana', [dia(25)], 0);
+
+    // 4. Hora extra e Ajustar num dia lançado e ainda não enviado.
     await clicar(`${dia(26)} [data-acao="mostrar-ajuste"]`);
     await aguardar(`document.querySelector('${dia(26)} .ah-ajuste .ah-coment').value !== ''`);
-    await quadro('ajustar', [dia(25), dia(26)], 0);
+    await quadro('ajustar', [dia(26)], 0);
 
-    // 4. Revisar sugestões: antes → depois, grava só o que for marcado.
+    // 5. Revisar sugestões: antes → depois, grava só o que for marcado.
     await abrir(PAINEL, painelPronto);
     await clicar('#assistente-horas [data-acao="revisar"]');
     await quadro('revisar', ['#assistente-horas .ah-revisao', '#assistente-horas footer'], 0);
 
-    // 5. Painel recolhido em uma linha, em cima da grade (tela mais larga, como num monitor comum).
+    // 6. Painel recolhido em uma linha, em cima da grade (tela mais larga, como num monitor comum).
     await clicar('#assistente-horas [data-acao="fechar-revisao"]');
     await clicar('#assistente-horas [data-acao="recolher"]');
     await enviar('Emulation.setDeviceMetricsOverride', { width: 1280, height: 900, deviceScaleFactor: 2, mobile: false });
     await quadro('recolhido', ['#assistente-horas', '.grade'], 12);
     await enviar('Emulation.setDeviceMetricsOverride', { width: 960, height: 900, deviceScaleFactor: 2, mobile: false });
 
-    // 6 e 7. Opções da extensão (a página real, com um Chrome fictício).
+    // 7 e 8. Opções da extensão (a página real, com um Chrome fictício).
     const { identifier } = await enviar('Page.addScriptToEvaluateOnNewDocument', { source: CHROME_OPCOES });
     await abrir(OPCOES, "document.getElementById('statusGithub').textContent.startsWith('Conectado')");
     await quadro('opcoes', ['body > *'], 16);

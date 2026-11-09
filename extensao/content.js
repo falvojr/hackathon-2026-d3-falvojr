@@ -65,7 +65,8 @@
     const sessoes = x.sessoes > 1 ? `${x.sessoes} sessões` : '1 sessão';
     const horario = x.primeiro === x.ultimo ? esc(x.primeiro) : `${esc(x.primeiro)}–${esc(x.ultimo)}`;
     const tipo = x.soColaboracao ? ', só revisões' : x.prd.length ? ', com deploy' : '';
-    const botao = dia.situacao === 'sugerir-horas'
+    // Em fim de semana e feriado a sugestão já é a própria estimativa: o botão seria repetido.
+    const botao = dia.situacao === 'sugerir-horas' && dia.util !== false
       ? ` <button type="button" class="ah-btn ah-sec" data-acao="somar-extra" data-alvo="${x.alvo}">Usar ${String(x.alvo).replace('.', ',')}h</button>`
       : '';
     return `<div class="ah-extra">Possível hora extra: ~${String(x.horas).replace('.', ',')}h fora do expediente (${sessoes}, ${horario}${tipo}).${botao}</div>`;
@@ -122,12 +123,15 @@
           <button type="button" class="ah-btn" data-acao="justificar">Salvar justificativa</button>`;
         break;
       case 'sugerir-horas':
-        status = '<span class="ah-alerta">Sem horas lançadas</span>';
+        // Fim de semana e feriado não são obrigatórios: mesmo formulário, sem alerta e sem "Foi ausência".
+        status = dia.util === false
+          ? `<span>${dia.feriado ? 'Feriado' : 'Fim de semana'} com atividade no GitHub</span> <span class="ah-mudo">· horas estimadas, confira</span>`
+          : '<span class="ah-alerta">Sem horas lançadas</span>';
         acao = `
           <label class="ah-horas">Horas <input type="number" step="0.25" min="0" max="24" value="${esc(dia.sugestao.horas)}"></label>
-          <textarea class="ah-coment" rows="2">${esc(dia.sugestao.comentario)}</textarea>
+          <textarea class="ah-coment" rows="2" placeholder="Justificativa (ex.: links do Jira)">${esc(dia.sugestao.comentario)}</textarea>
           <button type="button" class="ah-btn" data-acao="lancar">Lançar</button>
-          <button type="button" class="ah-btn ah-sec" data-acao="mostrar-ausencia">Foi ausência</button>`;
+          ${dia.util === false ? '' : '<button type="button" class="ah-btn ah-sec" data-acao="mostrar-ausencia">Foi ausência</button>'}`;
         break;
       case 'sugerir-ausencia':
         status = '<span class="ah-alerta">Sem horas e sem atividade no GitHub</span>';
@@ -135,7 +139,7 @@
           <button type="button" class="ah-btn ah-sec" data-acao="mostrar-horas">Lançar horas</button>`;
         break;
     }
-    const formAusencia = dia.situacao === 'sugerir-horas' || dia.situacao === 'sugerir-ausencia'
+    const formAusencia = (dia.situacao === 'sugerir-horas' && dia.util !== false) || dia.situacao === 'sugerir-ausencia'
       ? `<div class="ah-ausencia" ${dia.situacao === 'sugerir-horas' ? 'hidden' : ''}>
           <select class="ah-tipo">${opcoesAusencia(tipos)}</select>
           <input class="ah-just" type="text" placeholder="Justificativa da ausência (obrigatória)">
@@ -405,7 +409,8 @@
       }
 
       if (acao === 'justificar') {
-        const comentario = bloco.querySelector('.ah-coment').value.trim();
+        // O campo ao lado do botão: o dia também tem o campo (escondido) do Ajustar.
+        const comentario = botao.parentElement.querySelector('.ah-coment').value.trim();
         if (!comentario) return mensagem('Escreva a justificativa.', 'erro');
         return executar(botao, async () => {
           for (const c of dia.sugestao.celulas) await cliente.salvarComentario(c.aponId, comentario);

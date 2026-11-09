@@ -1,6 +1,14 @@
 # Versões
 
-Versionamento semântico: a v1.2.0 só acrescenta e corrige, sem quebrar nada para quem já usa (atualiza recarregando a extensão e mantém as configurações), por isso é uma versão menor.
+Versionamento semântico: depois da entrega, cada versão só acrescenta e corrige, sem quebrar nada para quem já usa (atualiza recarregando a extensão e mantém as configurações), por isso são versões menores.
+
+## v1.3.0 · 08/11/2026
+
+- **Correção:** "Salvar justificativa" não gravava em dia lançado e ainda não enviado (lia o campo vazio do Ajustar e respondia "Escreva a justificativa.").
+- **Fim de semana e feriado como dia útil:** com atividade e sem horas, o dia ganha o mesmo formulário (horas estimadas da atividade, links do Jira e **Lançar**), sem precisar lançar nada na grade antes. Não conta como pendência e, na revisão, entra desmarcado.
+- **Revisão mais legível:** os links do Jira não quebram no meio nas colunas Antes e Depois.
+
+Para atualizar: em `chrome://extensions`, recarregue a extensão.
 
 ## v1.2.0 · 04/11/2026
 

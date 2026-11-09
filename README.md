@@ -2,7 +2,7 @@
 
 Hackathon Ideen 2026 · Desafio 3 (Automação de controles internos) · controle **1. Horas não lançadas**, resolvido do lado de quem lança.
 
-Versão atual: **v1.2.0**. Entregue no prazo do hackathon: **v1.1.0**. A história das versões está no [CHANGELOG](CHANGELOG.md).
+Versão atual: **v1.3.0**. Entregue no prazo do hackathon: **v1.1.0**. A história das versões está no [CHANGELOG](CHANGELOG.md).
 
 ![Painel do assistente na tela de Horas (dados fictícios)](evidencias/prints/assistente-horas-demo.gif)
 
@@ -43,6 +43,7 @@ flowchart LR
 | Esquecer de lançar | Notificação diária (17:30) só quando há dia útil sem horas e sem ausência, e o número de dias pendentes no ícone da extensão (funciona mesmo com as notificações do Windows desligadas) |
 | Retroativo sem contexto | Para cada dia, sugere 8h e a **justificativa com os links do Jira** das demandas em que você é autor (seus commits, pushes, branches e PRs que você abriu), no formato que já se usa no PSOffice. Revisões, comentários e PRs de outras pessoas aparecem no painel como colaboração, mas não entram na justificativa |
 | Hora extra (deploy em PRD, plantão) | Estima o tempo fora do expediente por sessões de atividade, com peso menor para colaboração (um review isolado vale 0,25h), e destaca itens `[PRD]`/`hotfix`; se o lançado já cobre, só informa; nunca grava sozinho |
+| Trabalho no fim de semana ou feriado | Dia sem horas e com atividade ganha o mesmo formulário dos dias úteis: as horas estimadas da atividade e os links do Jira, com um clique em **Lançar**. Não conta como pendência e, na revisão, entra desmarcado por ser estimativa |
 | Saber o que a sugestão muda | **Revisar sugestões** lista, por dia, o antes → depois (horas e justificativa, com as linhas novas destacadas) e grava só os itens marcados. Vale também para semana salva e não enviada: completa links do Jira que faltam e oferece a hora extra, desmarcada por ser estimativa. Quando um botão está desligado, o painel diz por quê |
 | Corrigir antes da aprovação | Dia lançado e não enviado ganha **Ajustar** (horas e justificativa); semana enviada e não aprovada ganha **Cancelar envio para ajustar** |
 | Ausência como dia zerado | Dia útil passado sem horas e sem nenhuma atividade vira sugestão de **ausência**, registrada no formulário oficial |
@@ -50,7 +51,7 @@ flowchart LR
 | Segunda sem atividades | Repete automaticamente as atividades da semana anterior |
 | Enviar no fim da semana | Lembrete na sexta (16:00) e botão **Enviar semana para aprovação**, com resumo para confirmar |
 
-**Regra de exceção:** a do kit (dia útil sem nenhum lançamento, sem fim de semana e feriado; pendente conta como lançado), mais: ausência registrada não é pendência; o dia de hoje sem atividade ainda não é ausência; dia sem lançamento **com** atividade vira sugestão de horas; **sem** atividade vira sugestão de ausência; atividade fora do expediente (08:00–18:00; em fim de semana e feriado, o dia todo) vira indício de hora extra, agrupada em sessões: eventos até 60 min um do outro formam uma sessão; sessão com trabalho próprio vale do primeiro ao último evento mais 30 min, e sessão só de colaboração (revisão, comentário) vale metade do intervalo mais 15 min; o total é arredondado em 0,25h. A sugestão compara com o já lançado (jornada + indício; em fim de semana, só o indício) e só aparece se faltar hora, sempre desmarcada.
+**Regra de exceção:** a do kit (dia útil sem nenhum lançamento, sem fim de semana e feriado; pendente conta como lançado), mais: ausência registrada não é pendência; o dia de hoje sem atividade ainda não é ausência; dia sem lançamento **com** atividade vira sugestão de horas (em fim de semana e feriado, as horas estimadas da atividade, sem cobrar); **sem** atividade vira sugestão de ausência; atividade fora do expediente (08:00–18:00; em fim de semana e feriado, o dia todo) vira indício de hora extra, agrupada em sessões: eventos até 60 min um do outro formam uma sessão; sessão com trabalho próprio vale do primeiro ao último evento mais 30 min, e sessão só de colaboração (revisão, comentário) vale metade do intervalo mais 15 min; o total é arredondado em 0,25h. A sugestão compara com o já lançado (jornada + indício; em fim de semana, só o indício) e só aparece se faltar hora, sempre desmarcada.
 
 **Sem senha e sem token na extensão.** O PSOffice é acessado com a sessão já aberta no navegador, reproduzindo as mesmas chamadas das telas (`/api/horas/apontamento`, justificativa, seleção de atividades, ausência, envio e cancelamento). O GitHub é lido por uma **ponte local** que usa o `gh` já logado: o token não sai do cofre do sistema e a ponte só aceita `GET` em `/user`, `/users/<você>/events`, `/search/issues` e `/search/commits`. Para o PSOffice vão só links do Jira; títulos de PR/commit do cliente só com opção ligada. Cada gravação é conferida relendo o PSOffice.
 
@@ -93,17 +94,18 @@ Hoje a fonte de atividade é o GitHub, o que atende quem desenvolve. Para outros
 
 ## 4. Evidências
 
-O GIF do topo mostra a versão atual (v1.2.0), passo a passo, com **dados fictícios**: é a demonstração `kit/demo/painel.html` (seção 3), com o código real da extensão, mais a página de Opções.
+O GIF do topo mostra a versão atual (v1.3.0), passo a passo, com **dados fictícios**: é a demonstração `kit/demo/painel.html` (seção 3), com o código real da extensão, mais a página de Opções.
 
 | Passo | Tela |
 |---|---|
 | 1. Na tela de Horas do PSOffice, um painel mostra a semana dia a dia | ![Painel](evidencias/prints/quadros/painel.png) |
 | 2. Dia sem horas: sugere horas e links do Jira dos seus commits e PRs; a revisão de outra pessoa aparece apagada e não entra na justificativa | ![Evidências de um dia](evidencias/prints/quadros/evidencias.png) |
-| 3. Fora do expediente vira hora extra (só revisão pesa menos); Ajustar soma no dia lançado | ![Hora extra e Ajustar](evidencias/prints/quadros/ajustar.png) |
-| 4. Revisar sugestões: veja o antes → depois e grave só o que marcar | ![Revisar sugestões](evidencias/prints/quadros/revisar.png) |
-| 5. Recolhido, o painel vira uma linha com o resumo da semana | ![Painel recolhido](evidencias/prints/quadros/recolhido.png) |
-| 6. Opções: cada regra numa frase, com o valor editável dentro dela | ![Opções](evidencias/prints/quadros/opcoes.png) |
-| 7. Avançado (opcional): atividade, feriados locais e Jira | ![Opções avançadas](evidencias/prints/quadros/opcoes-avancado.png) |
+| 3. Fim de semana ou feriado com atividade: o mesmo formulário, com as horas estimadas | ![Fim de semana](evidencias/prints/quadros/fim-de-semana.png) |
+| 4. Fora do expediente vira hora extra; Ajustar soma no dia lançado | ![Hora extra e Ajustar](evidencias/prints/quadros/ajustar.png) |
+| 5. Revisar sugestões: veja o antes → depois e grave só o que marcar; estimativas entram desmarcadas | ![Revisar sugestões](evidencias/prints/quadros/revisar.png) |
+| 6. Recolhido, o painel vira uma linha com o resumo da semana | ![Painel recolhido](evidencias/prints/quadros/recolhido.png) |
+| 7. Opções: cada regra numa frase, com o valor editável dentro dela | ![Opções](evidencias/prints/quadros/opcoes.png) |
+| 8. Avançado (opcional): atividade, feriados locais e Jira | ![Opções avançadas](evidencias/prints/quadros/opcoes-avancado.png) |
 
 Como gerar de novo (requer Chrome ou Edge e Pillow):
 
@@ -115,7 +117,7 @@ python kit/montar-gif.py evidencias/prints/quadros evidencias/prints/assistente-
 O GIF da entrega (v1.1.0), com telas reais do uso entre 04 e 26/10, está em `evidencias/prints/v1.1.0/`. Nome, projeto, conta, repositórios, títulos e chaves do Jira estão **mascarados** por `kit/anonimizar-tela.js`, que não contém dado real: descobre na página o que esconder.
 
 - `evidencias/log-verificacao-kit.txt` e `evidencias/dias_sem_lancamento.csv`: regra do kit **idêntica ao esperado (61 linhas)**; rodar de novo gera o mesmo arquivo.
-- `evidencias/log-testes.txt`: 20 testes passando.
+- `evidencias/log-testes.txt`: 21 testes passando.
 - No PSOffice real (só na conta do autor, com autorização): leitura de semanas, ausências e justificativas; regravação de horas e justificativa conferida; seleção automática das atividades da semana seguinte; envio de uma semana para aprovação. Os formulários de ausência, atividades e envio foram comparados campo a campo com o que o navegador envia.
 
 ## 5. Onde a IA errou
@@ -135,10 +137,12 @@ O GIF da entrega (v1.1.0), com telas reais do uso entre 04 e 26/10, está em `ev
 13. **A estimativa de hora extra ainda era agressiva**: contava do fim do expediente até o último evento e somava por cima do já lançado (um review de 30 min no domingo, com 1h lançada, virava 1,5h). Agora agrupa a atividade em sessões e compara com o lançado; na calibração com o histórico real, dias como 22/10 (10h lançadas, antes "até +4h") passaram a "já coberto".
 14. **O painel dependia do CSS do PSOffice para esconder formulários**: os blocos usam `display:flex`, que vence o atributo `hidden`, e no PSOffice funcionava graças ao CSS da própria página. Pego ao rodar o painel fora do PSOffice para o GIF com dados fictícios, quando Ajustar e ausência apareceram abertos em todos os dias. Agora o CSS do painel garante isso sozinho.
 15. **Numerou a versão refinada como v2.0.0**, sem nenhuma mudança incompatível: atualiza recarregando a extensão e mantém as configurações. Pelo versionamento semântico, é a v1.2.0.
+16. **"Salvar justificativa" lia o campo errado**: o dia lançado e ainda não enviado tem dois campos de texto, o do Ajustar (escondido e vazio) e o da justificativa; o botão pegava o primeiro e respondia "Escreva a justificativa." Pego no uso real, num domingo; agora lê o campo ao lado do botão, e a demonstração confere o que seria gravado.
+17. **Tratou fim de semana como exceção sem ação**: com atividade e sem horas, o painel só mostrava o aviso, e era preciso lançar algo na grade antes de usar o assistente. Agora o fluxo é o mesmo dos dias úteis, com as horas estimadas.
 
 ## Como a IA foi usada
 
-Todo o desenvolvimento foi feito em par com o **Claude Code** (app desktop, aba Code), usando o modelo **Claude Opus 5.5 com esforço Alto**, em uma única sessão: de 23 a 26/10/2026 até a entrega (v1.1.0) e, depois, nos refinamentos até 04/11/2026 (v1.2.0).
+Todo o desenvolvimento foi feito em par com o **Claude Code** (app desktop, aba Code), usando o modelo **Claude Opus 5.5 com esforço Alto**, em uma única sessão: de 23 a 26/10/2026 até a entrega (v1.1.0) e, depois, nos refinamentos até 08/11/2026 (v1.2.0 e v1.3.0).
 
 | Etapa | O que a IA fez | O que a pessoa decidiu ou validou |
 |---|---|---|

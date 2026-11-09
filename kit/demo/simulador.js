@@ -19,7 +19,10 @@
 
   // Atividade fictícia no GitHub, por dia.
   const EVIDENCIAS = {
-    '2026-10-25': [ev('2026-10-25', '20:19', 'revisao', 'portal', 'XYZ-9 Ajusta a validação do lote')],
+    '2026-10-25': [
+      ev('2026-10-25', '19:50', 'commit', 'api-lotes', 'ABC-99 Corrige o reprocessamento noturno'),
+      ev('2026-10-25', '20:19', 'revisao', 'portal', 'XYZ-9 Ajusta a validação do lote'),
+    ],
     '2026-10-26': [
       ev('2026-10-26', '10:12', 'commit', 'api-lotes', 'ABC-100 Valida lote duplicado'),
       ev('2026-10-26', '15:40', 'push', 'api-lotes', 'feature/ABC-100-lote-duplicado'),
@@ -57,7 +60,13 @@
     travado: false,
   }));
 
-  const espera = (ms) => new Promise((r) => setTimeout(r, ms));
+  // O que o painel gravaria no PSOffice fica só aqui (e no console), para conferir.
+  window.gravacoesDemo = [];
+  const simular = (acao) => (...args) => {
+    window.gravacoesDemo.push({ acao, args });
+    console.info('[demo] gravaria:', acao, args);
+    return new Promise((r) => setTimeout(r, 300));
+  };
   const semana = {
     usuId: '1',
     inicio: '2026-10-25',
@@ -77,13 +86,13 @@
       }),
       lerComentario: async (c) => COMENTARIOS[c.data] || '',
       // Ações de gravação: só simulam (o painel recarrega a página em seguida).
-      lancar: () => espera(300),
-      salvarHoras: () => espera(300),
-      salvarComentario: () => espera(300),
-      registrarAusencia: () => espera(300),
-      enviarSemana: () => espera(300),
-      cancelarEnvio: () => espera(300),
-      selecionarAtividades: () => espera(300),
+      lancar: simular('lancar'),
+      salvarHoras: simular('salvarHoras'),
+      salvarComentario: simular('salvarComentario'),
+      registrarAusencia: simular('registrarAusencia'),
+      enviarSemana: simular('enviarSemana'),
+      cancelarEnvio: simular('cancelarEnvio'),
+      selecionarAtividades: simular('selecionarAtividades'),
     }),
   };
 

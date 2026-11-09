@@ -235,6 +235,8 @@
       dia.autoria = itens.filter(ehAutoria).length;
       for (const it of itens.filter(ehAutoria)) for (const k of extrairChaves(it.texto, cfg.prefixosJira)) if (!dia.chaves.includes(k)) dia.chaves.push(k);
       const util = ehDiaUtil(data, feriados);
+      dia.util = util;
+      dia.feriado = feriados.has(data);
       dia.extra = indicioHoraExtra(itens, cfg, util);
       if (dia.extra) {
         // Total que o dia teria com a hora extra; se o lançado já cobre, não há o que sugerir.
@@ -256,9 +258,13 @@
       } else if (data === hoje && !itens.length && util && !ausencia) {
         // O dia ainda está em andamento: sem atividade até agora não é ausência.
         dia.situacao = 'hoje';
+      } else if (!util && itens.length && celulaPrincipal && !travado && !ausencia && data <= hoje) {
+        // Trabalhou no fim de semana ou feriado: o mesmo fluxo do dia útil, com as horas estimadas da atividade.
+        // Não é pendência (o dia não é obrigatório) e, na revisão, entra desmarcado como a hora extra.
+        dia.situacao = 'sugerir-horas';
+        dia.sugestao = { tipo: 'horas', celula: celulaPrincipal, horas: dia.extra.horas, comentario: montarComentario(itens, cfg) };
       } else if (!util) {
-        dia.situacao = feriados.has(data) ? 'feriado' : 'fim-de-semana';
-        // Trabalhou no fim de semana ou feriado? Mostra a evidência, mas não sugere nada sozinho.
+        dia.situacao = dia.feriado ? 'feriado' : 'fim-de-semana';
       } else if (ausencia) {
         dia.situacao = 'ausencia';
       } else if (data > hoje) {
@@ -282,14 +288,24 @@
    * `comentarios`: justificativa atual ({ 'AAAA-MM-DD': texto }) dos dias lançados e ainda editáveis.
    * Hora extra entra desmarcada: é estimativa e só a pessoa sabe se trabalhou.
    */
+  // Resumo da estimativa de hora extra, mostrado na revisão: "~0,5h fora do expediente em 1 sessão (21:10)".
+  function notaExtra(x) {
+    const sessoes = x.sessoes > 1 ? `${x.sessoes} sessões` : '1 sessão';
+    const horario = x.primeiro === x.ultimo ? x.primeiro : `${x.primeiro}–${x.ultimo}`;
+    return `~${String(x.horas).replace('.', ',')}h fora do expediente em ${sessoes} (${horario})${x.soColaboracao ? ', só revisões/comentários' : ''}${x.prd.length ? ', com deploy/hotfix' : ''}`;
+  }
+
   function montarMudancas(analise, comentarios) {
     const mudancas = [];
     const horas = (c) => c.minutos / 60;
     for (const d of analise.dias) {
       const base = { data: d.data, nome: d.nome };
       if (d.situacao === 'sugerir-horas') {
+        // Fim de semana e feriado: as horas são estimativa, então o item entra desmarcado.
+        const estimativa = d.util === false && d.extra;
         mudancas.push(Object.assign({}, base, {
-          id: `${d.data}-lancar`, tipo: 'lancar', celula: d.sugestao.celula, marcada: true,
+          id: `${d.data}-lancar`, tipo: 'lancar', celula: d.sugestao.celula, marcada: !estimativa,
+          nota: estimativa ? notaExtra(d.extra) : undefined,
           antes: { horas: 0, comentario: '' },
           depois: { horas: d.sugestao.horas, comentario: d.sugestao.comentario },
         }));
@@ -313,10 +329,9 @@
           }));
         }
         if (d.extra && !d.extra.coberto) {
-          const sessoes = d.extra.sessoes > 1 ? `${d.extra.sessoes} sessões` : '1 sessão';
           mudancas.push(Object.assign({}, base, {
             id: `${d.data}-extra`, tipo: 'extra', celula: c, marcada: false,
-            nota: `~${String(d.extra.horas).replace('.', ',')}h fora do expediente em ${sessoes} (${d.extra.primeiro === d.extra.ultimo ? d.extra.primeiro : `${d.extra.primeiro}–${d.extra.ultimo}`})${d.extra.soColaboracao ? ', só revisões/comentários' : ''}${d.extra.prd.length ? ', com deploy/hotfix' : ''}`,
+            nota: notaExtra(d.extra),
             antes: { horas: horas(c), comentario: atual },
             depois: { horas: horas(c) + (d.extra.alvo - d.minutos / 60), comentario: atual },
           }));
@@ -326,9 +341,9 @@
     return mudancas;
   }
 
-  // Dias úteis até hoje que ainda pedem ação (sem horas e sem ausência).
+  // Dias úteis até hoje que ainda pedem ação (sem horas e sem ausência). Fim de semana e feriado não são cobrados.
   function pendencias(analise) {
-    return analise.dias.filter((d) => d.situacao === 'sugerir-horas' || d.situacao === 'sugerir-ausencia');
+    return analise.dias.filter((d) => d.util !== false && (d.situacao === 'sugerir-horas' || d.situacao === 'sugerir-ausencia'));
   }
 
   const Regras = {
